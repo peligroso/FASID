@@ -4,3 +4,4 @@ Bundle-Name: Util
 Bundle-SymbolicName: org.juxtapose.fasid.core.util
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.juxtapose.fasid.jsr166y;bundle-version="1.0.0"
