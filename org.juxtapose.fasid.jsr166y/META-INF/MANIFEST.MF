@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Jsr166y2
+Bundle-SymbolicName: org.juxtapose.fasid.jsr166y
+Bundle-Version: 1.0.0
+Export-Package: jsr166y;version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
