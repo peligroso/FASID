@@ -7,32 +7,29 @@ import com.trifork.clj_ds.IPersistentVector;
 import com.trifork.clj_ds.PersistentHashMap;
 import com.trifork.clj_ds.PersistentVector;
 
-public class PublishedData{
-
-	IPersistentMap<String, DataType<?>> m_dataMap = PersistentHashMap.emptyMap();
-	IPersistentMap<String, DataType<?>> m_lastDeltaMap = PersistentHashMap.emptyMap();
+public class PublishedData
+{
+	final IPersistentMap<String, DataType<?>> m_dataMap;
+	final IPersistentMap<String, DataType<?>> m_lastUpdateMap;
 	
-	//TODO change to subscriber interface
-	IPersistentVector<IDataSubscriber> m_subscribers = PersistentVector.emptyVector();
+	final IPersistentVector<IDataSubscriber> m_subscribers;
 	
-	public void init()
+	PublishedData( IPersistentMap<String, DataType<?>> inData, IPersistentMap<String, DataType<?>> inLastUpdate, IPersistentVector<IDataSubscriber> inSubscribers ) 
 	{
-		
+		m_dataMap = inData;
+		m_lastUpdateMap = inLastUpdate;
+		m_subscribers = inSubscribers;
 	}
 	
 	private void updateSubscribers()
 	{
-		String s = "!Hej";
-		Double d = new Double(2);
 		
-		s.getBytes();
-		d.byteValue();
 	}
 	
-	public void addSubscriber( IDataSubscriber inSubscriber )
+	public PublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
-		m_subscribers.assocN(m_subscribers.count(), inSubscriber );
-		inSubscriber.updateData( this );
+		IPersistentVector<IDataSubscriber> newSub = m_subscribers.assocN(m_subscribers.count(), inSubscriber );
+		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub );
 	}
 	
 	
