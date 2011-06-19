@@ -1,12 +1,17 @@
 package org.juxtapose.fasid.core.util;
 
+import java.util.HashMap;
+
 import org.juxtapose.fasid.core.util.data.DataType;
+import org.juxtapose.fasid.core.util.data.DataTypeNull;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
-import com.trifork.clj_ds.PersistentHashMap;
-import com.trifork.clj_ds.PersistentVector;
 
+/**
+ * @author Pontus
+ *
+ */
 public class PublishedData
 {
 	final IPersistentMap<String, DataType<?>> m_dataMap;
@@ -26,11 +31,55 @@ public class PublishedData
 		
 	}
 	
+	/**
+	 * @param inSubscriber
+	 * @return
+	 */
 	public PublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.assocN(m_subscribers.count(), inSubscriber );
 		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub );
 	}
+	
+	/**
+	 * @param inKey
+	 * @param inValue
+	 * @return
+	 * @throws Exception
+	 */
+	public PublishedData putDataValue( String inKey, DataType<?> inValue )throws Exception
+	{
+		IPersistentMap<String, DataType<?>> newMap;
+		
+		if( inValue instanceof DataTypeNull )
+			newMap = m_dataMap.without( inKey );
+		else
+			newMap = m_dataMap.assoc( inKey, inValue );
+		
+		return new PublishedData( newMap, m_lastUpdateMap, m_subscribers );
+	}
+	
+	/**
+	 * @param inStateTransitionMap
+	 * @return
+	 * @throws Exception
+	 */
+	public PublishedData putDataValues( HashMap<String, DataType<?>> inStateTransitionMap )throws Exception
+	{
+		IPersistentMap<String, DataType<?>> newDataMap = m_dataMap;
+		
+		for( String key : inStateTransitionMap.keySet() )
+		{
+			DataType<?> value = inStateTransitionMap.get( key );
+			if( value instanceof DataTypeNull )
+				newDataMap = newDataMap.without( key );
+			else
+				newDataMap = newDataMap.assoc( key, value );
+		}
+		
+		return new PublishedData( newDataMap, m_lastUpdateMap, m_subscribers );
+	}
+
 	
 	
 }
