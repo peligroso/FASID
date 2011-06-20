@@ -1,14 +1,21 @@
-package org.juxtapose.fasid.core.stm;
+package org.juxtapose.fasid.stm;
 
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.management.PersistentMBean;
 
 import org.juxtapose.fasid.core.util.IDataPublisher;
 import org.juxtapose.fasid.core.util.IDataSubscriber;
-import org.juxtapose.fasid.core.util.PublishedData;
 import org.juxtapose.fasid.core.util.Status;
 import org.juxtapose.fasid.core.util.data.DataType;
+
+import com.trifork.clj_ds.IPersistentMap;
+import com.trifork.clj_ds.IPersistentVector;
+import com.trifork.clj_ds.PersistentHashMap;
+import com.trifork.clj_ds.PersistentVector;
 
 /**
  * @author Pontus
@@ -19,11 +26,34 @@ public class STM
 {
 	private static boolean USE_LOCKING = false;
 	
-	private ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();
-	
+	private ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
 	private ConcurrentHashMap<String, IDataPublisher> m_keyToPublisher = new ConcurrentHashMap<String, IDataPublisher>();
-	
 	private ConcurrentHashMap<String, ReentrantReadWriteLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantReadWriteLock>();
+	
+	private ReentrantLock m_dataKeyMasterLock = new ReentrantLock();
+	
+	
+	private PublishedData createPublishedData( String inDataKey )
+	{
+		PublishedData data;
+		
+		m_dataKeyMasterLock.lock();
+		
+		data = m_keyToData.get( inDataKey );
+		
+		if( data == null )
+		{
+			IPersistentMap<String, DataType<?>> dataMap = PersistentHashMap.emptyMap();
+			IPersistentMap<String, DataType<?>> lastUpdateMap = PersistentHashMap.emptyMap();
+			IPersistentVector<IDataSubscriber> subscribers = PersistentVector.emptyVector();
+			
+			data = new PublishedData( dataMap, lastUpdateMap, subscribers );
+		}
+		
+		m_dataKeyMasterLock.unlock();
+		
+		return data;
+	}
 	
 	public Status subscribe( String inPublisherKey, HashMap<String, String> inQuery, IDataSubscriber inSubscriber )
 	{

@@ -1,7 +1,9 @@
-package org.juxtapose.fasid.core.util;
+package org.juxtapose.fasid.stm;
 
 import java.util.HashMap;
 
+import org.juxtapose.fasid.core.util.IDataSubscriber;
+import org.juxtapose.fasid.core.util.IPublishedData;
 import org.juxtapose.fasid.core.util.data.DataType;
 import org.juxtapose.fasid.core.util.data.DataTypeNull;
 
@@ -10,9 +12,11 @@ import com.trifork.clj_ds.IPersistentVector;
 
 /**
  * @author Pontus
+ * This class belongs to the the STM
+ * only STM may create or modify a PublishedData on pub/sub requests
  *
  */
-public class PublishedData
+final class PublishedData implements IPublishedData
 {
 	final IPersistentMap<String, DataType<?>> m_dataMap;
 	final IPersistentMap<String, DataType<?>> m_lastUpdateMap;

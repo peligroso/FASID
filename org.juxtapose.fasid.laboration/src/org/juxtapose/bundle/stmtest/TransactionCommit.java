@@ -1,7 +1,7 @@
 package org.juxtapose.bundle.stmtest;
 
-import org.juxtapose.fasid.core.stm.STM;
-import org.juxtapose.fasid.core.stm.Transaction;
+import org.juxtapose.fasid.stm.STM;
+import org.juxtapose.fasid.stm.Transaction;
 
 public class TransactionCommit 
 {
