@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.core.util;
+package org.juxtapose.fasid.util;
 
 public enum Status {
 

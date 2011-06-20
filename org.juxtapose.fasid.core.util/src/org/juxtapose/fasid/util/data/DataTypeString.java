@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.core.util.data;
+package org.juxtapose.fasid.util.data;
 
 public class DataTypeString extends DataType<String> {
 

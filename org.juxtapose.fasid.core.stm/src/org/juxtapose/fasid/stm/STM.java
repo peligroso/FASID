@@ -7,10 +7,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.management.PersistentMBean;
 
-import org.juxtapose.fasid.core.util.IDataPublisher;
-import org.juxtapose.fasid.core.util.IDataSubscriber;
-import org.juxtapose.fasid.core.util.Status;
-import org.juxtapose.fasid.core.util.data.DataType;
+import org.juxtapose.fasid.util.IDataPublisher;
+import org.juxtapose.fasid.util.IDataSubscriber;
+import org.juxtapose.fasid.util.Status;
+import org.juxtapose.fasid.util.data.DataType;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;

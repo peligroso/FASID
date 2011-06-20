@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.core.util;
+package org.juxtapose.fasid.util;
 
 import java.util.HashMap;
 

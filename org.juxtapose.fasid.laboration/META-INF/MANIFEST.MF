@@ -4,5 +4,6 @@ Bundle-Name: Persistanttest
 Bundle-SymbolicName: org.juxtapose.fasid.laboration
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: org.juxtapose.fasid.core.util;bundle-version="1.0.0",
- org.juxtapose.fasid.core.stm;bundle-version="1.0.0"
+Require-Bundle: org.juxtapose.fasid.util;bundle-version="1.0.0",
+ org.juxtapose.fasid.stm;bundle-version="1.0.0"
+Import-Package: org.juxtapose.fasid.stm

@@ -2,10 +2,10 @@ package org.juxtapose.fasid.stm;
 
 import java.util.HashMap;
 
-import org.juxtapose.fasid.core.util.IDataSubscriber;
-import org.juxtapose.fasid.core.util.IPublishedData;
-import org.juxtapose.fasid.core.util.data.DataType;
-import org.juxtapose.fasid.core.util.data.DataTypeNull;
+import org.juxtapose.fasid.util.IDataSubscriber;
+import org.juxtapose.fasid.util.IPublishedData;
+import org.juxtapose.fasid.util.data.DataType;
+import org.juxtapose.fasid.util.data.DataTypeNull;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
