@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.stm;
+package org.juxtapose.fasid.stm.impl;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;

@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.stm;
+package org.juxtapose.fasid.stm.impl;
 
 import java.util.HashMap;
 
@@ -29,12 +29,24 @@ public abstract class Transaction
 	
 	public abstract void execute();
 	
+	private boolean validateStack()
+	{
+		for (StackTraceElement element : Thread.currentThread().getStackTrace() )
+		{
+			if( element.getClassName().equals( STM.class.getClass().getName() ) &&
+					element.getMethodName().equals( STM.COMMIT_METHOD ) )
+				return true;
+		}
+		
+		return false;
+	}
 	/**
 	 * @param inKey
 	 * @param inData
 	 */
 	public void addValue( String inKey, DataType<?> inData )
 	{
+		assert validateStack() : "Transaction.addValue was not from called from within a STM commit as required";
 		m_stateInstruction.put( inKey, inData );
 	}
 
