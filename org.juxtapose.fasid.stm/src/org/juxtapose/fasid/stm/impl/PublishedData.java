@@ -11,7 +11,10 @@ import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
 
 /**
- * @author Pontus
+ * @author Pontus Jörgne
+ * 28 jun 2011
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ * 
  * This class belongs to the the STM
  * only STM may create or modify a PublishedData on pub/sub requests
  *
@@ -83,6 +86,43 @@ final class PublishedData implements IPublishedData
 		
 		return new PublishedData( newDataMap, m_lastUpdateMap, m_subscribers );
 	}
+	
+	/**
+	 * @param inDataMap
+	 * @return
+	 */
+	public PublishedData setDataMap( IPersistentMap<String, DataType<?>> inDataMap )
+	{
+		return new PublishedData( inDataMap, m_lastUpdateMap, m_subscribers );
+	}
+	
+	/**
+	 * @param inDataMap
+	 * @return
+	 */
+	public PublishedData setUpdatedData( IPersistentMap<String, DataType<?>> inDataMap, IPersistentMap<String, DataType<?>> inDeltaMap )
+	{
+		return new PublishedData( inDataMap, inDeltaMap, m_subscribers );
+	}
+	
+	
+	/**
+	 * @return
+	 */
+	protected IPersistentMap<String, DataType<?>> getDataMap()
+	{
+		return m_dataMap;
+	}
+	
+	/**
+	 * @return
+	 */
+	protected IPersistentMap<String, DataType<?>> getLastUpdateMap()
+	{
+		return m_lastUpdateMap;
+	}
+	
+	
 
 	
 	

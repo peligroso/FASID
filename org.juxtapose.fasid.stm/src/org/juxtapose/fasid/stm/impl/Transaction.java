@@ -1,12 +1,15 @@
 package org.juxtapose.fasid.stm.impl;
 
-import java.util.HashMap;
-
 import org.juxtapose.fasid.util.data.DataType;
+
+import com.trifork.clj_ds.IPersistentMap;
+import com.trifork.clj_ds.PersistentHashMap;
 
 
 /**
- * @author Pontus
+ * @author Pontus Jörgne
+ * 28 jun 2011
+ * Copyright (c) Pontus Jörgne. All rights reserved
  * 
  * Transaction represents a set of instructions that will take a published data from ¨
  * one state to another in an atomic operation.
@@ -17,14 +20,21 @@ import org.juxtapose.fasid.util.data.DataType;
 public abstract class Transaction
 {
 	private String m_dataKey;	
-	private HashMap<String, DataType<?>> m_stateInstruction = new HashMap<String, DataType<?>>();
+	private IPersistentMap<String, DataType<?>> m_stateInstruction;
+	
+	private IPersistentMap<String, DataType<?>> m_deltaState = PersistentHashMap.emptyMap();
 	
 	/**
 	 * @param inDataKey
 	 */
-	public Transaction( String inDataKey ) 
+	protected Transaction( String inDataKey ) 
 	{
 		m_dataKey = inDataKey;
+	}
+	
+	protected void putInitDataState( IPersistentMap<String, DataType<?>> inMap )
+	{
+		m_stateInstruction = inMap;
 	}
 	
 	public abstract void execute();
@@ -47,18 +57,29 @@ public abstract class Transaction
 	public void addValue( String inKey, DataType<?> inData )
 	{
 		assert validateStack() : "Transaction.addValue was not from called from within a STM commit as required";
-		m_stateInstruction.put( inKey, inData );
+		m_stateInstruction = m_stateInstruction.assoc( inKey, inData );
+		
+		m_deltaState = m_deltaState.assoc(inKey, inData);
+		
 	}
 
 	public void removeValue( String inKey )
 	{
-		
+		assert validateStack() : "Transaction.removeValue was not from called from within a STM commit as required";
 	}
 	
 	/**
 	 * @return
 	 */
-	protected HashMap<String, DataType<?>> getStateInstruction()
+	protected IPersistentMap<String, DataType<?>> getStateInstruction()
+	{
+		return m_stateInstruction;
+	}
+	
+	/**
+	 * @return
+	 */
+	protected IPersistentMap<String, DataType<?>> getDeltaState()
 	{
 		return m_stateInstruction;
 	}

@@ -18,7 +18,9 @@ import com.trifork.clj_ds.PersistentHashMap;
 import com.trifork.clj_ds.PersistentVector;
 
 /**
- * @author Pontus
+ * @author Pontus Jörgne
+ * 28 jun 2011
+ * Copyright (c) Pontus Jörgne. All rights reserved
  *
  *Software Transactional Memory
  *
@@ -28,7 +30,7 @@ public class STM
 	/**Used for stack validation**/
 	static String COMMIT_METHOD = "commit";
 	
-	private static boolean USE_LOCKING = false;
+	private static final boolean USE_LOCKING = false;
 	
 	private ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
 	private ConcurrentHashMap<Integer, IDataPublisher> m_idToPublisher = new ConcurrentHashMap<Integer, IDataPublisher>();
@@ -103,9 +105,10 @@ public class STM
 				if( existingData == null )
 					return;
 
+				inTransaction.putInitDataState( existingData.getDataMap() );
 				inTransaction.execute();
 
-				newData = existingData.putDataValues( inTransaction.getStateInstruction() );
+				newData = existingData.setUpdatedData( inTransaction.getStateInstruction(), inTransaction.getDeltaState() );
 
 			}
 			while( !m_keyToData.replace( dataKey, existingData, newData ) );
@@ -125,7 +128,7 @@ public class STM
 //		lock.writeLock().lock();
 		
 		inTransaction.execute();
-		HashMap<String, DataType<?>> inst = inTransaction.getStateInstruction();
+		IPersistentMap<String, DataType<?>> inst = inTransaction.getStateInstruction();
 		
 //		lock.writeLock().unlock();
 	}

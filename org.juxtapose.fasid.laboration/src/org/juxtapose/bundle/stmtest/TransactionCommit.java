@@ -1,21 +1,21 @@
 package org.juxtapose.bundle.stmtest;
 
+import org.juxtapose.fasid.stm.exp.DataTransaction;
+
 
 public class TransactionCommit 
 {
 	public static void main( String... args )
 	{
-//		STM stm = new STM();
-//		
-//		
-//		stm.commit( new Transaction( "datakey" ){
-//			@Override
-//			public void execute() 
-//			{
-//				Publishe 
-//			}
-//			
-//		});
+		
+		DataTransaction dt = new DataTransaction( "datakey" ){
+			@Override
+			public void execute() 
+			{
+				
+			}
+			
+		};
 	}
 	
 	
