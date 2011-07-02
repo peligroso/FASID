@@ -6,11 +6,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.juxtapose.fasid.util.DataConstants;
-import org.juxtapose.fasid.util.IDataPublisher;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeString;
+import org.juxtapose.fasid.util.producer.IDataProducerService;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
@@ -33,10 +33,21 @@ public class STM
 	private static final boolean USE_LOCKING = false;
 	
 	private ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
-	private ConcurrentHashMap<Integer, IDataPublisher> m_idToPublisher = new ConcurrentHashMap<Integer, IDataPublisher>();
+	private ConcurrentHashMap<Integer, IDataProducerService> m_idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
 	private ConcurrentHashMap<String, ReentrantReadWriteLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantReadWriteLock>();
 	
 	private ReentrantLock m_dataKeyMasterLock = new ReentrantLock();
+	
+	protected void init()
+	{
+		
+	}
+	
+	public void registerProducer( IDataProducerService inProducerService )
+	{
+		int id = inProducerService.getServiceId();
+		m_idToProducerService.put( id, inProducerService );
+	}
 	
 	
 	private PublishedData createPublishedData( String inDataKey )
