@@ -1,29 +1,22 @@
 package org.juxtapose.fasid.stm.impl;
 
+import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICES;
+import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICE_KEY;
+import static org.juxtapose.fasid.util.DataConstants.QUERY_KEY;
+
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.STMUtil;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
-import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fasid.util.lock.HashStripedLock;
-import org.juxtapose.fasid.util.producer.DataKey;
 import org.juxtapose.fasid.util.producer.IDataKey;
 import org.juxtapose.fasid.util.producer.IDataProducer;
 import org.juxtapose.fasid.util.producer.IDataProducerService;
-import org.juxtapose.fasid.util.producer.ProducerUtil;
-
-import com.trifork.clj_ds.IPersistentMap;
-import com.trifork.clj_ds.IPersistentVector;
-import com.trifork.clj_ds.PersistentHashMap;
-import com.trifork.clj_ds.PersistentVector;
-
-import static org.juxtapose.fasid.util.DataConstants.*;
+import org.juxtapose.fasid.util.producerservices.ProducerServiceUtil;
 
 /**
  * @author Pontus Jörgne
@@ -33,35 +26,35 @@ import static org.juxtapose.fasid.util.DataConstants.*;
  *Software Transactional Memory
  *
  */
-public class STM implements IDataProducerService
+public abstract class STM implements IDataProducerService
 {
 	/**Used for stack validation**/
 	static String COMMIT_METHOD = "commit";
 	
-	private static final boolean USE_LOCKING = true;
-	
-	private ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
+	protected ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
 	//Services that create producers to data id is service ID
 	private ConcurrentHashMap<String, IDataProducerService> m_idToProducerService = new ConcurrentHashMap<String, IDataProducerService>();
 	
-	private ConcurrentHashMap<String, ReentrantReadWriteLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantReadWriteLock>();
-	
 	/**Used for creation and deletion of DataKey locks**/
-	private HashStripedLock m_dataKeyMasterLock = new HashStripedLock( 256 );
+	protected HashStripedLock m_dataKeyMasterLock = new HashStripedLock( 256 );
 	
 	protected void init()
 	{
-		createPublishedData( PRODUCER_SERVICES, Status.OK );
+		createPublishedData( PRODUCER_SERVICE_KEY.getKey(), Status.OK );
 		registerProducer( this, Status.OK );
 		
 	}
 	
+	/**
+	 * @param inProducerService
+	 * @param initState
+	 */
 	public void registerProducer( final IDataProducerService inProducerService, final Status initState )
 	{
 		String id = inProducerService.getServiceId();
 		m_idToProducerService.put( id, inProducerService );
 		
-		commit( new DataTransaction( PRODUCER_SERVICES )
+		commit( new DataTransaction( PRODUCER_SERVICE_KEY.getKey() )
 		{
 			@Override
 			public void execute()
@@ -72,73 +65,14 @@ public class STM implements IDataProducerService
 	}
 	
 	
-	/**
-	 * @param inDataKey
-	 * @return
-	 */
-	private PublishedData createPublishedData( String inDataKey, Status initState )
+	public Status subscribe( IDataKey inDataKey, IDataSubscriber inSubscriber )
 	{
-		PublishedData data;
+		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
 		
-		m_dataKeyMasterLock.lock( inDataKey );
-		
-		ReentrantReadWriteLock newLock = new ReentrantReadWriteLock( true );
-		ReentrantReadWriteLock lock = m_keyToLock.putIfAbsent( inDataKey, newLock );
-		lock = lock == null ? newLock : lock;
-		
-		lock.writeLock().lock();
-		
-		data = m_keyToData.get( inDataKey );
-		
-		if( data == null )
-		{
-			IPersistentMap<String, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( initState.toString()));
-			IPersistentMap<String, DataType<?>> lastUpdateMap = PersistentHashMap.emptyMap();
-			IPersistentVector<IDataSubscriber> subscribers = PersistentVector.emptyVector();
-			
-			data = new PublishedData( dataMap, lastUpdateMap, subscribers );
-			
-			m_keyToData.put( inDataKey , data );
-			
-			//TODO notify publisher and figure out if this should be done inside the lock
-		}
-		
-		lock.writeLock().unlock();
-		m_dataKeyMasterLock.unlock( inDataKey );
-		
-		return data;
-	}
-	
-	/**
-	 * @param inDataKey
-	 */
-	protected void removePublishedData( String inDataKey )
-	{
-		m_dataKeyMasterLock.lock( inDataKey );
-		
-		ReentrantReadWriteLock lock = m_keyToLock.get( inDataKey );
-		if( lock != null )
-		{
-			lock.writeLock().lock();
-			
-			m_keyToData.remove( inDataKey );
-			
-			lock.writeLock().unlock();
-		}
-		
-		m_keyToLock.remove( inDataKey );
-		
-		m_dataKeyMasterLock.unlock( inDataKey );
-	}
-	
-	public Status subscribe( String inPublisherKey, HashMap<String, String> inQuery, IDataSubscriber inSubscriber )
-	{
-//		IDataPublisher publisher = m_idToPublisher.get( inPublisherKey );
+		if( producerService == null )
+			return Status.NA;
 //		
-//		if( publisher == null )
-//			return Status.NA;
-//		
-//		String key = publisher.subscribe( inQuery );
+//		String key = producerService.subscribe( inQuery );
 //		
 //		if( key == null )
 //			return Status.NA;
@@ -186,53 +120,6 @@ public class STM implements IDataProducerService
 
 	}
 	
-	/**
-	 * @param inTransaction
-	 */
-	public void commitWithLocks( Transaction inTransaction )
-	{
-		String dataKey = inTransaction.getDataKey();
-		ReentrantReadWriteLock lock = m_keyToLock.get( dataKey );
-		
-		if( lock == null )
-		{
-			//data has been removed due to lack of interest, transaction is discarded
-			return;
-		}
-		
-		lock.writeLock().lock();
-		
-		PublishedData existingData = m_keyToData.get( dataKey );
-		if( existingData == null )
-		{
-			//data has been removed due to lack of interest, transaction is discarded
-			return;
-		}
-		
-		inTransaction.putInitDataState( existingData.getDataMap() );
-		inTransaction.execute();
-		IPersistentMap<String, DataType<?>> inst = inTransaction.getStateInstruction();
-		IPersistentMap<String, DataType<?>> delta = inTransaction.getDeltaState();
-		
-		existingData.setUpdatedData( inst, delta );
-		
-		lock.writeLock().unlock();
-	}
-	
-	/**
-	 * @param inTransaction
-	 */
-	public void commit( Transaction inTransaction )
-	{
-		if( USE_LOCKING )
-		{
-			commitWithLocks( inTransaction );
-		}
-		else
-		{
-			commitWithCAS( inTransaction );
-		}
-	}
 
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.util.producer.IDataProducerService#getServiceId()
@@ -240,7 +127,7 @@ public class STM implements IDataProducerService
 	@Override
 	public String getServiceId()
 	{
-		return STMUtil.STM_SERVICE_KEY;
+		return ProducerServiceUtil.STM_SERVICE_KEY;
 	}
 
 	/* (non-Javadoc)
@@ -253,7 +140,7 @@ public class STM implements IDataProducerService
 		
 		if( val != null && val == PRODUCER_SERVICES )
 		{
-			return ProducerUtil.createDataKey( new String[]{PRODUCER_SERVICES, PRODUCER_SERVICES});
+			return PRODUCER_SERVICE_KEY;
 		}
 		return null;
 	}
@@ -265,13 +152,9 @@ public class STM implements IDataProducerService
 		return null;
 	}
 	
+	public abstract void commit( Transaction inTransaction );
+	protected abstract PublishedData createPublishedData( String inDataKey, Status initState );
+	protected abstract void removePublishedData( String inDataKey );
 	
-	//Test purpose
-	public static void main( String... args )
-	{
-		STM stm = new STM();
-		stm.init();
-	}
-
 	
 }

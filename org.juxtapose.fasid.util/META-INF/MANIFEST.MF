@@ -9,4 +9,5 @@ Export-Package: com.trifork.clj_ds,
  org.juxtapose.fasid.util,
  org.juxtapose.fasid.util.data,
  org.juxtapose.fasid.util.lock,
- org.juxtapose.fasid.util.producer
+ org.juxtapose.fasid.util.producer,
+ org.juxtapose.fasid.util.producerservices

@@ -2,13 +2,25 @@ package org.juxtapose.fasid.util.producer;
 
 import java.util.HashMap;
 
+/**
+ * @author Pontus Jörgne
+ * 7 aug 2011
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ */
 public class DataKey implements IDataKey
 {
-	HashMap<String, String> m_keyMap;
-	String m_key;
+	private final HashMap<String, String> m_keyMap;
+	private final String m_producerServiceKey;
+	private final String m_key;
 	
-	public DataKey( HashMap<String, String> inMap, String inKey )
+	/**
+	 * @param inProducerServiceKey
+	 * @param inMap
+	 * @param inKey
+	 */
+	public DataKey( String inProducerServiceKey, HashMap<String, String> inMap, String inKey )
 	{
+		m_producerServiceKey = inProducerServiceKey;
 		m_keyMap = inMap;
 		m_key = inKey;
 	}
@@ -22,6 +34,7 @@ public class DataKey implements IDataKey
 	{
 		return m_key;
 	}
+	
 	
 	/**
 	 * @param inKey
@@ -51,5 +64,11 @@ public class DataKey implements IDataKey
 	public int hashCode()
 	{
 		return m_key.hashCode();
+	}
+
+	@Override
+	public String getService()
+	{
+		return m_producerServiceKey;
 	}
 }
