@@ -4,8 +4,12 @@ import java.util.HashMap;
 
 public interface IDataProducerService
 {
-	public int getServiceId();
-	public String getKey( HashMap<String, String> inQuery );
-	public void subscribe( String inKey );
-	public void unSubscribe( String inKey );
+	public String getServiceId();
+	/**
+	 * @param inQuery query for key
+	 * @return datakey or null if no datakey can be created from query
+	 */
+	public IDataKey getDataKey( HashMap<String, String> inQuery );
+	public IDataProducer getDataProducer( IDataKey inDataKey );
+
 }

@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.stm.impl;
+package org.juxtapose.fasid.stm.exp;
 
 /**
  * @author Pontus Jörgne
@@ -7,4 +7,5 @@ package org.juxtapose.fasid.stm.impl;
  */
 public class STMUtil {
 
+	public static String STM_SERVICE_KEY = "STM";
 }

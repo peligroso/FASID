@@ -1,6 +1,7 @@
 package org.juxtapose.fasid.stm.impl;
 
 import org.juxtapose.fasid.util.data.DataType;
+import org.juxtapose.fasid.util.data.DataTypeNull;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.PersistentHashMap;
@@ -63,9 +64,12 @@ public abstract class Transaction
 		
 	}
 
-	public void removeValue( String inKey )
+	public void removeValue( String inKey )throws Exception
 	{
 		assert validateStack() : "Transaction.removeValue was not from called from within a STM commit as required";
+		m_stateInstruction = m_stateInstruction.without( inKey );
+		
+		m_deltaState = m_deltaState.assoc(inKey, new DataTypeNull( null ));
 	}
 	
 	/**

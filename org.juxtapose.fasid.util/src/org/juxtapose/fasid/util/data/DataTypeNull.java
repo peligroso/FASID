@@ -2,7 +2,7 @@ package org.juxtapose.fasid.util.data;
 
 public class DataTypeNull extends DataType<Object>{
 
-	DataTypeNull(Object inValue) {
+	public DataTypeNull(Object inValue) {
 		super(inValue);
 	}
 
