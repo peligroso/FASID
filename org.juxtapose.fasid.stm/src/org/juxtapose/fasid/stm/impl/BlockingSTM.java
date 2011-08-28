@@ -1,6 +1,7 @@
 package org.juxtapose.fasid.stm.impl;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.juxtapose.fasid.util.DataConstants;
@@ -8,6 +9,10 @@ import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeString;
+import org.juxtapose.fasid.util.lock.HashStripedLock;
+import org.juxtapose.fasid.util.producer.IDataKey;
+import org.juxtapose.fasid.util.producer.IDataProducer;
+import org.juxtapose.fasid.util.producer.IDataProducerService;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
@@ -16,41 +21,60 @@ import com.trifork.clj_ds.PersistentVector;
 
 public class BlockingSTM extends STM
 {
-	private ConcurrentHashMap<String, ReentrantReadWriteLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantReadWriteLock>();
+	public final boolean FAIR_LOCKING = true; 
+	private ConcurrentHashMap<String, ReentrantLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantLock>();
+	
+	/**Used for creation and deletion of DataKey locks**/
+	protected HashStripedLock m_dataKeyMasterLock = new HashStripedLock( 256 );
 	
 	/**
 	 * @param inDataKey
 	 * @return
 	 */
-	protected PublishedData createPublishedData( String inDataKey, Status initState )
+	protected PublishedData createPublishedData( IDataKey inDataKey, Status initState )
 	{
 		PublishedData data;
 		
-		m_dataKeyMasterLock.lock( inDataKey );
+		m_dataKeyMasterLock.lock( inDataKey.getKey() );
 		
-		ReentrantReadWriteLock newLock = new ReentrantReadWriteLock( true );
-		ReentrantReadWriteLock lock = m_keyToLock.putIfAbsent( inDataKey, newLock );
+		ReentrantLock newLock = new ReentrantLock( FAIR_LOCKING );
+		ReentrantLock lock = m_keyToLock.putIfAbsent( inDataKey.getKey(), newLock );
 		lock = lock == null ? newLock : lock;
 		
-		lock.writeLock().lock();
+		lock.lock();
+		
+		m_dataKeyMasterLock.unlock( inDataKey.getKey() );
 		
 		data = m_keyToData.get( inDataKey );
 		
 		if( data == null )
 		{
+			IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
+			if( producerService == null )
+			{
+				System.err.print( "Key: "+inDataKey+" not valid, producer service does not exist"  );
+				lock.unlock();
+				return null;
+			}
 			IPersistentMap<String, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( initState.toString()));
 			IPersistentMap<String, DataType<?>> lastUpdateMap = PersistentHashMap.emptyMap();
 			IPersistentVector<IDataSubscriber> subscribers = PersistentVector.emptyVector();
 			
 			data = new PublishedData( dataMap, lastUpdateMap, subscribers );
 			
-			m_keyToData.put( inDataKey , data );
+			m_keyToData.put( inDataKey.getKey() , data );
 			
-			//TODO notify publisher and figure out if this should be done inside the lock
+			IDataProducer producer = producerService.getDataProducer( inDataKey );
+			lock.unlock();
+			
+			if( producer != null )
+				producer.start();
+		}
+		else
+		{
+			lock.unlock();
 		}
 		
-		lock.writeLock().unlock();
-		m_dataKeyMasterLock.unlock( inDataKey );
 		
 		return data;
 	}
@@ -62,14 +86,14 @@ public class BlockingSTM extends STM
 	{
 		m_dataKeyMasterLock.lock( inDataKey );
 		
-		ReentrantReadWriteLock lock = m_keyToLock.get( inDataKey );
+		ReentrantLock lock = m_keyToLock.get( inDataKey );
 		if( lock != null )
 		{
-			lock.writeLock().lock();
+			lock.lock();
 			
 			m_keyToData.remove( inDataKey );
 			
-			lock.writeLock().unlock();
+			lock.unlock();
 		}
 		
 		m_keyToLock.remove( inDataKey );
@@ -77,10 +101,13 @@ public class BlockingSTM extends STM
 		m_dataKeyMasterLock.unlock( inDataKey );
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.impl.STM#commit(org.juxtapose.fasid.stm.impl.Transaction)
+	 */
 	public void commit( Transaction inTransaction )
 	{
 		String dataKey = inTransaction.getDataKey();
-		ReentrantReadWriteLock lock = m_keyToLock.get( dataKey );
+		ReentrantLock lock = m_keyToLock.get( dataKey );
 		
 		if( lock == null )
 		{
@@ -88,7 +115,7 @@ public class BlockingSTM extends STM
 			return;
 		}
 		
-		lock.writeLock().lock();
+		lock.lock();
 		
 		PublishedData existingData = m_keyToData.get( dataKey );
 		if( existingData == null )
@@ -104,6 +131,41 @@ public class BlockingSTM extends STM
 		
 		existingData.setUpdatedData( inst, delta );
 		
-		lock.writeLock().unlock();
+		lock.unlock();
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.impl.STM#subscribe(org.juxtapose.fasid.util.producer.IDataKey, org.juxtapose.fasid.util.IDataSubscriber)
+	 */
+	public void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber )
+	{
+		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
+		
+		if( producerService == null )
+			return;
+		
+		PublishedData data = m_keyToData.get( inDataKey.getKey() );
+		
+		if( data == null )
+			createPublishedData( inDataKey, Status.ON_REQUEST );
+		
+		data = data.addSubscriber( inSubscriber );
+		
+		m_keyToData.put( inDataKey.getKey(), data );
+		
+//		String key = producerService.subscribe( inQuery );
+//		
+//		if( key == null )
+//			return Status.NA;
+//		
+//		PublishedData data = m_keyToData.get( key );
+//		
+//		data.addSubscriber( inSubscriber );
+//		
+		return;
+		
+		//...
+		
+	}
+
 }

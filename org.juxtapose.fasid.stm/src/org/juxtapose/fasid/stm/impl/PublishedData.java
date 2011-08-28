@@ -49,6 +49,24 @@ final class PublishedData implements IPublishedData
 	}
 	
 	/**
+	 * @param inSubscriber
+	 * @return
+	 */
+	public PublishedData removeSubscriber( IDataSubscriber inSubscriber )
+	{
+		IPersistentVector<IDataSubscriber> newSub = m_subscribers.cons( inSubscriber );
+		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub );
+	}
+	
+	/**
+	 * @return
+	 */
+	public boolean hasSubscribers()
+	{
+		return m_subscribers.length() > 0;
+	}
+	
+	/**
 	 * @param inKey
 	 * @param inValue
 	 * @return

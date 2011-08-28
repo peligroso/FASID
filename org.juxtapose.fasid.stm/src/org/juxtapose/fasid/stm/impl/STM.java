@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.juxtapose.fasid.stm.exp.DataTransaction;
-import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeString;
@@ -33,14 +32,11 @@ public abstract class STM implements IDataProducerService
 	
 	protected ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
 	//Services that create producers to data id is service ID
-	private ConcurrentHashMap<String, IDataProducerService> m_idToProducerService = new ConcurrentHashMap<String, IDataProducerService>();
-	
-	/**Used for creation and deletion of DataKey locks**/
-	protected HashStripedLock m_dataKeyMasterLock = new HashStripedLock( 256 );
+	protected ConcurrentHashMap<String, IDataProducerService> m_idToProducerService = new ConcurrentHashMap<String, IDataProducerService>();
 	
 	protected void init()
 	{
-		createPublishedData( PRODUCER_SERVICE_KEY.getKey(), Status.OK );
+		createPublishedData( PRODUCER_SERVICE_KEY, Status.OK );
 		registerProducer( this, Status.OK );
 		
 	}
@@ -64,61 +60,6 @@ public abstract class STM implements IDataProducerService
 		});
 	}
 	
-	
-	public Status subscribe( IDataKey inDataKey, IDataSubscriber inSubscriber )
-	{
-		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
-		
-		if( producerService == null )
-			return Status.NA;
-//		
-//		String key = producerService.subscribe( inQuery );
-//		
-//		if( key == null )
-//			return Status.NA;
-//		
-//		PublishedData data = m_keyToData.get( key );
-//		
-//		data.addSubscriber( inSubscriber );
-//		
-		return Status.NA;
-		
-		//...
-		
-	}
-	
-	/**
-	 * @param inTransaction
-	 */
-	public void commitWithCAS( Transaction inTransaction )
-	{
-		String dataKey = inTransaction.getDataKey();
-
-		PublishedData existingData;
-		PublishedData newData;
-
-		try
-		{
-			do
-			{
-				existingData = m_keyToData.get( dataKey );
-				if( existingData == null )
-				{
-					//data has been removed due to lack of interest, transaction is discarded
-					return;
-				}
-
-				inTransaction.putInitDataState( existingData.getDataMap() );
-				inTransaction.execute();
-
-				newData = existingData.setUpdatedData( inTransaction.getStateInstruction(), inTransaction.getDeltaState() );
-
-			}
-			while( !m_keyToData.replace( dataKey, existingData, newData ) );
-
-		}catch( Exception e){}
-
-	}
 	
 
 	/* (non-Javadoc)
@@ -153,8 +94,9 @@ public abstract class STM implements IDataProducerService
 	}
 	
 	public abstract void commit( Transaction inTransaction );
-	protected abstract PublishedData createPublishedData( String inDataKey, Status initState );
+	protected abstract PublishedData createPublishedData( IDataKey inDataKey, Status initState );
 	protected abstract void removePublishedData( String inDataKey );
+	public abstract void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber );
 	
 	
 }
