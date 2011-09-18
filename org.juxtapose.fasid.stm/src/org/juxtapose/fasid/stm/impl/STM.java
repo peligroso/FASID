@@ -11,7 +11,6 @@ import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeString;
-import org.juxtapose.fasid.util.lock.HashStripedLock;
 import org.juxtapose.fasid.util.producer.IDataKey;
 import org.juxtapose.fasid.util.producer.IDataProducer;
 import org.juxtapose.fasid.util.producer.IDataProducerService;

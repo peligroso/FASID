@@ -60,11 +60,12 @@ public class BlockingSTM extends STM
 			IPersistentMap<String, DataType<?>> lastUpdateMap = PersistentHashMap.emptyMap();
 			IPersistentVector<IDataSubscriber> subscribers = PersistentVector.emptyVector();
 			
-			data = new PublishedData( dataMap, lastUpdateMap, subscribers );
+			IDataProducer producer = producerService.getDataProducer( inDataKey );
+			
+			data = new PublishedData( dataMap, lastUpdateMap, subscribers, producer );
 			
 			m_keyToData.put( inDataKey.getKey() , data );
 			
-			IDataProducer producer = producerService.getDataProducer( inDataKey );
 			lock.unlock();
 			
 			if( producer != null )

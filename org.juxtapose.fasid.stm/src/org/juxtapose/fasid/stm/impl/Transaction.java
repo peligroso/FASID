@@ -2,6 +2,7 @@ package org.juxtapose.fasid.stm.impl;
 
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
+import org.juxtapose.fasid.util.producer.IDataProducer;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.PersistentHashMap;
@@ -25,12 +26,20 @@ public abstract class Transaction
 	
 	private IPersistentMap<String, DataType<?>> m_deltaState = PersistentHashMap.emptyMap();
 	
+	private IDataProducer m_producer = null;
+	
 	/**
 	 * @param inDataKey
 	 */
 	protected Transaction( String inDataKey ) 
 	{
 		m_dataKey = inDataKey;
+	}
+	
+	protected Transaction( String inDataKey, IDataProducer inProducer ) 
+	{
+		m_dataKey = inDataKey;
+		m_producer = inProducer;
 	}
 	
 	protected void putInitDataState( IPersistentMap<String, DataType<?>> inMap )
@@ -94,5 +103,10 @@ public abstract class Transaction
 	protected String getDataKey()
 	{
 		return m_dataKey;
+	}
+	
+	public IDataProducer producedBy()
+	{
+		return m_producer;
 	}
 }

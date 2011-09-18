@@ -6,6 +6,7 @@ import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
+import org.juxtapose.fasid.util.producer.IDataProducer;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
@@ -26,11 +27,14 @@ final class PublishedData implements IPublishedData
 	
 	final IPersistentVector<IDataSubscriber> m_subscribers;
 	
-	PublishedData( IPersistentMap<String, DataType<?>> inData, IPersistentMap<String, DataType<?>> inLastUpdate, IPersistentVector<IDataSubscriber> inSubscribers ) 
+	final IDataProducer m_producer;
+	
+	PublishedData( IPersistentMap<String, DataType<?>> inData, IPersistentMap<String, DataType<?>> inLastUpdate, IPersistentVector<IDataSubscriber> inSubscribers, IDataProducer inProducer ) 
 	{
 		m_dataMap = inData;
 		m_lastUpdateMap = inLastUpdate;
 		m_subscribers = inSubscribers;
+		m_producer = inProducer;
 	}
 	
 	private void updateSubscribers()
@@ -45,7 +49,7 @@ final class PublishedData implements IPublishedData
 	public PublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.assocN(m_subscribers.count(), inSubscriber );
-		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub );
+		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub, m_producer );
 	}
 	
 	/**
@@ -55,7 +59,7 @@ final class PublishedData implements IPublishedData
 	public PublishedData removeSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.cons( inSubscriber );
-		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub );
+		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub, m_producer );
 	}
 	
 	/**
@@ -81,7 +85,7 @@ final class PublishedData implements IPublishedData
 		else
 			newMap = m_dataMap.assoc( inKey, inValue );
 		
-		return new PublishedData( newMap, m_lastUpdateMap, m_subscribers );
+		return new PublishedData( newMap, m_lastUpdateMap, m_subscribers, m_producer );
 	}
 	
 	/**
@@ -102,7 +106,7 @@ final class PublishedData implements IPublishedData
 				newDataMap = newDataMap.assoc( key, value );
 		}
 		
-		return new PublishedData( newDataMap, m_lastUpdateMap, m_subscribers );
+		return new PublishedData( newDataMap, m_lastUpdateMap, m_subscribers, m_producer );
 	}
 	
 	/**
@@ -111,7 +115,7 @@ final class PublishedData implements IPublishedData
 	 */
 	public PublishedData setDataMap( IPersistentMap<String, DataType<?>> inDataMap )
 	{
-		return new PublishedData( inDataMap, m_lastUpdateMap, m_subscribers );
+		return new PublishedData( inDataMap, m_lastUpdateMap, m_subscribers, m_producer );
 	}
 	
 	/**
@@ -120,7 +124,7 @@ final class PublishedData implements IPublishedData
 	 */
 	public PublishedData setUpdatedData( IPersistentMap<String, DataType<?>> inDataMap, IPersistentMap<String, DataType<?>> inDeltaMap )
 	{
-		return new PublishedData( inDataMap, inDeltaMap, m_subscribers );
+		return new PublishedData( inDataMap, inDeltaMap, m_subscribers, m_producer );
 	}
 	
 	
@@ -140,7 +144,10 @@ final class PublishedData implements IPublishedData
 		return m_lastUpdateMap;
 	}
 	
-	
+	public IDataProducer getProducer()
+	{
+		return m_producer;
+	}
 
 	
 	
