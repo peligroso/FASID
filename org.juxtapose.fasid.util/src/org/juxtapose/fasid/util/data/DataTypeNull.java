@@ -6,10 +6,4 @@ public class DataTypeNull extends DataType<Object>{
 		super(inValue);
 	}
 
-	@Override
-	public Object get() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

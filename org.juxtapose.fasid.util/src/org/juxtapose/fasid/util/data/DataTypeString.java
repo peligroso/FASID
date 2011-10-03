@@ -7,9 +7,4 @@ public class DataTypeString extends DataType<String> {
 		super(inValue);
 	}
 
-	public String get()
-	{
-		return null;
-	}
-
 }

@@ -9,9 +9,5 @@ public class DataTypeBigDecimal extends DataType<BigDecimal>{
 		super( inValue );
 	}
 
-	@Override
-	public BigDecimal get() {
-		return m_value;
-	}
 
 }

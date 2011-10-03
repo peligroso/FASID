@@ -4,5 +4,5 @@ public interface IDataKey
 {
 	public String getKey( );
 	public String getValue( String inKey );
-	public String getService();
+	public Integer getService();
 }

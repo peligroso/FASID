@@ -9,7 +9,7 @@ import java.util.HashMap;
  */
 public class ProducerUtil
 {
-	public static String DATA_KEY = "DATA_KEY";
+	public static Integer SINGLE_VALUE_DATA_KEY = 1;
 	public static String AND = "&";
 	public static String EQUALS = "=";
 	public static String SERVICE_KEY_DELIM = ":";
@@ -20,19 +20,19 @@ public class ProducerUtil
 	 * @param inKeyValues
 	 * @return
 	 */
-	public static IDataKey createDataKey( String inServiceKey, String[] inKeyValues )
+	public static IDataKey createDataKey( Integer inServiceKey, Integer[] inKeys, String[] inValues )
 	{
-		if( inKeyValues.length % 2 != 0 )
+		if( inKeys.length != inValues.length )
 			throw new IllegalArgumentException("Key-value pairs must be even ");
 		
-		HashMap<String, String> map = new HashMap<String, String>();
+		HashMap<Integer, String> map = new HashMap<Integer, String>();
 		StringBuilder sb = new StringBuilder(inServiceKey);
 		sb.append(SERVICE_KEY_DELIM);
 		
-		for( int i = 0; i < inKeyValues.length; i+=2 )
+		for( int i = 0; i < inKeys.length; i++ )
 		{
-			String key = inKeyValues[i];
-			String value = inKeyValues[i+1];
+			Integer key = inKeys[i];
+			String value = inValues[i+1];
 			
 			map.put( key, value );
 			if( i != 0 )
@@ -50,8 +50,12 @@ public class ProducerUtil
 	 * @param inSingleValue
 	 * @return
 	 */
-	public static IDataKey createDataKey( String inServiceKey, String inSingleValue )
+	public static IDataKey createDataKey( Integer inServiceKey, String inSingleValue )
 	{
-		return createDataKey( inServiceKey, new String[]{DATA_KEY, inSingleValue} );
+		HashMap<Integer, String> map = new HashMap<Integer, String>();
+		map.put( SINGLE_VALUE_DATA_KEY, inSingleValue );
+		String key = inServiceKey+SERVICE_KEY_DELIM+SINGLE_VALUE_DATA_KEY+EQUALS+inSingleValue;
+		
+		return new DataKey( inServiceKey, map, key ); 
 	}
 }

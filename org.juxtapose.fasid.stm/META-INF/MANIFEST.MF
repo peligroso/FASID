@@ -4,9 +4,11 @@ Bundle-Name: Stm
 Bundle-SymbolicName: org.juxtapose.fasid.stm
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.juxtapose.fasid.stm.impl.Activator
-Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: org.osgi.framework;version="1.3.0"
+Import-Package: org.osgi.framework;version="1.3.0",
+ org.osgi.service.component
 Require-Bundle: org.juxtapose.fasid.util;bundle-version="1.0.0"
-Export-Package: org.juxtapose.fasid.stm.exp
+Export-Package: org.juxtapose.fasid.stm.exp,
+ org.juxtapose.fasid.stm.osgi
+
 

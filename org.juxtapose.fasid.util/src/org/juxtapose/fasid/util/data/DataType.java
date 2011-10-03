@@ -9,6 +9,14 @@ public abstract class DataType<T> {
 		m_value = inValue;
 	}
 	
-	public abstract T get();
+	public T get()
+	{
+		return m_value;
+	}
+	
+	public String toString()
+	{
+		return get().toString();
+	}
 
 }

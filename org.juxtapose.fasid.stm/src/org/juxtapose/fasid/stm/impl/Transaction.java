@@ -1,5 +1,8 @@
 package org.juxtapose.fasid.stm.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
 import org.juxtapose.fasid.util.producer.IDataProducer;
@@ -22,9 +25,9 @@ import com.trifork.clj_ds.PersistentHashMap;
 public abstract class Transaction
 {
 	private String m_dataKey;	
-	private IPersistentMap<String, DataType<?>> m_stateInstruction;
+	private IPersistentMap<Integer, DataType<?>> m_stateInstruction;
 	
-	private IPersistentMap<String, DataType<?>> m_deltaState = PersistentHashMap.emptyMap();
+	private Map<Integer, DataType<?>> m_deltaState = new HashMap<Integer, DataType<?>>();
 	
 	private IDataProducer m_producer = null;
 	
@@ -42,7 +45,7 @@ public abstract class Transaction
 		m_producer = inProducer;
 	}
 	
-	protected void putInitDataState( IPersistentMap<String, DataType<?>> inMap )
+	protected void putInitDataState( IPersistentMap<Integer, DataType<?>> inMap )
 	{
 		m_stateInstruction = inMap;
 	}
@@ -64,27 +67,27 @@ public abstract class Transaction
 	 * @param inKey
 	 * @param inData
 	 */
-	public void addValue( String inKey, DataType<?> inData )
+	public void addValue( Integer inKey, DataType<?> inData )
 	{
 		assert validateStack() : "Transaction.addValue was not from called from within a STM commit as required";
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inData );
 		
-		m_deltaState = m_deltaState.assoc(inKey, inData);
+		m_deltaState.put(inKey, inData);
 		
 	}
 
-	public void removeValue( String inKey )throws Exception
+	public void removeValue( Integer inKey )throws Exception
 	{
 		assert validateStack() : "Transaction.removeValue was not from called from within a STM commit as required";
 		m_stateInstruction = m_stateInstruction.without( inKey );
 		
-		m_deltaState = m_deltaState.assoc(inKey, new DataTypeNull( null ));
+		m_deltaState.put(inKey, new DataTypeNull( null ));
 	}
 	
 	/**
 	 * @return
 	 */
-	protected IPersistentMap<String, DataType<?>> getStateInstruction()
+	protected IPersistentMap<Integer, DataType<?>> getStateInstruction()
 	{
 		return m_stateInstruction;
 	}
@@ -92,9 +95,9 @@ public abstract class Transaction
 	/**
 	 * @return
 	 */
-	protected IPersistentMap<String, DataType<?>> getDeltaState()
+	protected Map<Integer, DataType<?>> getDeltaState()
 	{
-		return m_stateInstruction;
+		return m_deltaState;
 	}
 	
 	/**

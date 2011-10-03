@@ -1,6 +1,8 @@
 package org.juxtapose.fasid.stm.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -22,24 +24,28 @@ import com.trifork.clj_ds.IPersistentVector;
  */
 final class PublishedData implements IPublishedData
 {
-	final IPersistentMap<String, DataType<?>> m_dataMap;
-	final IPersistentMap<String, DataType<?>> m_lastUpdateMap;
+	final IPersistentMap<Integer, DataType<?>> m_dataMap;
+	final Map<Integer, DataType<?>> m_deltaMap;
 	
 	final IPersistentVector<IDataSubscriber> m_subscribers;
 	
 	final IDataProducer m_producer;
 	
-	PublishedData( IPersistentMap<String, DataType<?>> inData, IPersistentMap<String, DataType<?>> inLastUpdate, IPersistentVector<IDataSubscriber> inSubscribers, IDataProducer inProducer ) 
+	PublishedData( IPersistentMap<Integer, DataType<?>> inData, Map<Integer, DataType<?>> inLastUpdate, IPersistentVector<IDataSubscriber> inSubscribers, IDataProducer inProducer ) 
 	{
 		m_dataMap = inData;
-		m_lastUpdateMap = inLastUpdate;
+		m_deltaMap = Collections.unmodifiableMap( inLastUpdate );
 		m_subscribers = inSubscribers;
 		m_producer = inProducer;
 	}
 	
-	private void updateSubscribers()
+	protected void updateSubscribers()
 	{
-		
+		for( int i = 0; i < m_subscribers.length(); i++ )
+		{
+			IDataSubscriber subscriber = m_subscribers.nth( i );
+			subscriber.updateData( this, false );
+		}
 	}
 	
 	/**
@@ -49,7 +55,7 @@ final class PublishedData implements IPublishedData
 	public PublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.assocN(m_subscribers.count(), inSubscriber );
-		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub, m_producer );
+		return new PublishedData( m_dataMap, m_deltaMap, newSub, m_producer );
 	}
 	
 	/**
@@ -59,7 +65,7 @@ final class PublishedData implements IPublishedData
 	public PublishedData removeSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.cons( inSubscriber );
-		return new PublishedData( m_dataMap, m_lastUpdateMap, newSub, m_producer );
+		return new PublishedData( m_dataMap, m_deltaMap, newSub, m_producer );
 	}
 	
 	/**
@@ -76,16 +82,16 @@ final class PublishedData implements IPublishedData
 	 * @return
 	 * @throws Exception
 	 */
-	public PublishedData putDataValue( String inKey, DataType<?> inValue )throws Exception
+	public PublishedData putDataValue( Integer inKey, DataType<?> inValue )throws Exception
 	{
-		IPersistentMap<String, DataType<?>> newMap;
+		IPersistentMap<Integer, DataType<?>> newMap;
 		
 		if( inValue instanceof DataTypeNull )
 			newMap = m_dataMap.without( inKey );
 		else
 			newMap = m_dataMap.assoc( inKey, inValue );
 		
-		return new PublishedData( newMap, m_lastUpdateMap, m_subscribers, m_producer );
+		return new PublishedData( newMap, m_deltaMap, m_subscribers, m_producer );
 	}
 	
 	/**
@@ -93,11 +99,11 @@ final class PublishedData implements IPublishedData
 	 * @return
 	 * @throws Exception
 	 */
-	public PublishedData putDataValues( HashMap<String, DataType<?>> inStateTransitionMap )throws Exception
+	public PublishedData putDataValues( HashMap<Integer, DataType<?>> inStateTransitionMap )throws Exception
 	{
-		IPersistentMap<String, DataType<?>> newDataMap = m_dataMap;
+		IPersistentMap<Integer, DataType<?>> newDataMap = m_dataMap;
 		
-		for( String key : inStateTransitionMap.keySet() )
+		for( Integer key : inStateTransitionMap.keySet() )
 		{
 			DataType<?> value = inStateTransitionMap.get( key );
 			if( value instanceof DataTypeNull )
@@ -106,23 +112,23 @@ final class PublishedData implements IPublishedData
 				newDataMap = newDataMap.assoc( key, value );
 		}
 		
-		return new PublishedData( newDataMap, m_lastUpdateMap, m_subscribers, m_producer );
+		return new PublishedData( newDataMap, m_deltaMap, m_subscribers, m_producer );
 	}
 	
 	/**
 	 * @param inDataMap
 	 * @return
 	 */
-	public PublishedData setDataMap( IPersistentMap<String, DataType<?>> inDataMap )
+	public PublishedData setDataMap( IPersistentMap<Integer, DataType<?>> inDataMap )
 	{
-		return new PublishedData( inDataMap, m_lastUpdateMap, m_subscribers, m_producer );
+		return new PublishedData( inDataMap, m_deltaMap, m_subscribers, m_producer );
 	}
 	
 	/**
 	 * @param inDataMap
 	 * @return
 	 */
-	public PublishedData setUpdatedData( IPersistentMap<String, DataType<?>> inDataMap, IPersistentMap<String, DataType<?>> inDeltaMap )
+	public PublishedData setUpdatedData( IPersistentMap<Integer, DataType<?>> inDataMap, Map<Integer, DataType<?>> inDeltaMap )
 	{
 		return new PublishedData( inDataMap, inDeltaMap, m_subscribers, m_producer );
 	}
@@ -131,7 +137,7 @@ final class PublishedData implements IPublishedData
 	/**
 	 * @return
 	 */
-	protected IPersistentMap<String, DataType<?>> getDataMap()
+	public IPersistentMap<Integer, DataType<?>> getDataMap()
 	{
 		return m_dataMap;
 	}
@@ -139,14 +145,23 @@ final class PublishedData implements IPublishedData
 	/**
 	 * @return
 	 */
-	protected IPersistentMap<String, DataType<?>> getLastUpdateMap()
+	public Map<Integer, DataType<?>> getDeltaMap()
 	{
-		return m_lastUpdateMap;
+		return m_deltaMap;
 	}
 	
 	public IDataProducer getProducer()
 	{
 		return m_producer;
+	}
+	
+	/**
+	 * @param inKey
+	 * @return
+	 */
+	public DataType<?> getValue( int inKey )
+	{
+		return m_dataMap.valAt( inKey );
 	}
 
 	

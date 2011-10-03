@@ -1,5 +1,8 @@
 package org.juxtapose.fasid.stm.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
@@ -16,7 +19,7 @@ import com.trifork.clj_ds.PersistentVector;
 
 public class NonBlockingSTM extends STM
 {
-
+	
 	public void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber )
 	{
 		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
@@ -34,13 +37,13 @@ public class NonBlockingSTM extends STM
 			if( existingData == null )
 			{
 				//First subscriber
-				IPersistentMap<String, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, Status.ON_REQUEST );
-				IPersistentMap<String, DataType<?>> lastUpdateMap = PersistentHashMap.emptyMap();
+				IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, Status.ON_REQUEST );
+				Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 				IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create(inSubscriber);
 				
 				IDataProducer producer = producerService.getDataProducer( inDataKey );
 			
-				PublishedData newData = new PublishedData( dataMap, lastUpdateMap, subscribers, producer );
+				PublishedData newData = new PublishedData( dataMap, deltaMap, subscribers, producer );
 			
 				existingData = m_keyToData.putIfAbsent( inDataKey.getKey(), newData );
 				set = (existingData ==  null);
@@ -58,6 +61,8 @@ public class NonBlockingSTM extends STM
 				
 				if( !set )
 					existingData = m_keyToData.get( inDataKey.getKey() );
+				else
+					inSubscriber.updateData( existingData, true );
 			}
 		}
 		while( !set );
@@ -143,22 +148,9 @@ public class NonBlockingSTM extends STM
 
 			}
 			while( !m_keyToData.replace( dataKey, existingData, newData ) );
+			newData.updateSubscribers();
 
 		}catch( Exception e){}
-		
-	}
-
-	@Override
-	protected PublishedData createPublishedData( IDataKey inDataKey, Status initState )
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected void removePublishedData(String inDataKey)
-	{
-		// TODO Auto-generated method stub
 		
 	}
 

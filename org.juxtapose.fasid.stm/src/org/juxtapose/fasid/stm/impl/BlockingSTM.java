@@ -1,5 +1,7 @@
 package org.juxtapose.fasid.stm.impl;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -56,13 +58,13 @@ public class BlockingSTM extends STM
 				lock.unlock();
 				return null;
 			}
-			IPersistentMap<String, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( initState.toString()));
-			IPersistentMap<String, DataType<?>> lastUpdateMap = PersistentHashMap.emptyMap();
+			IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( initState.toString()));
+			Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 			IPersistentVector<IDataSubscriber> subscribers = PersistentVector.emptyVector();
 			
 			IDataProducer producer = producerService.getDataProducer( inDataKey );
 			
-			data = new PublishedData( dataMap, lastUpdateMap, subscribers, producer );
+			data = new PublishedData( dataMap, deltaMap, subscribers, producer );
 			
 			m_keyToData.put( inDataKey.getKey() , data );
 			
@@ -127,8 +129,8 @@ public class BlockingSTM extends STM
 		
 		inTransaction.putInitDataState( existingData.getDataMap() );
 		inTransaction.execute();
-		IPersistentMap<String, DataType<?>> inst = inTransaction.getStateInstruction();
-		IPersistentMap<String, DataType<?>> delta = inTransaction.getDeltaState();
+		IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
+		Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
 		
 		existingData.setUpdatedData( inst, delta );
 		
@@ -166,6 +168,14 @@ public class BlockingSTM extends STM
 		return;
 		
 		//...
+		
+	}
+
+	@Override
+	public void unsubscribeToData(IDataKey inDataKey,
+			IDataSubscriber inSubscriber)
+	{
+		// TODO Auto-generated method stub
 		
 	}
 

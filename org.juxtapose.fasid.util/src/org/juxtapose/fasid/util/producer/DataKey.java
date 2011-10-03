@@ -9,8 +9,8 @@ import java.util.HashMap;
  */
 public class DataKey implements IDataKey
 {
-	private final HashMap<String, String> m_keyMap;
-	private final String m_producerServiceKey;
+	private final HashMap<Integer, String> m_keyMap;
+	private final Integer m_producerServiceKey;
 	private final String m_key;
 	
 	/**
@@ -18,7 +18,7 @@ public class DataKey implements IDataKey
 	 * @param inMap
 	 * @param inKey
 	 */
-	public DataKey( String inProducerServiceKey, HashMap<String, String> inMap, String inKey )
+	public DataKey( Integer inProducerServiceKey, HashMap<Integer, String> inMap, String inKey )
 	{
 		m_producerServiceKey = inProducerServiceKey;
 		m_keyMap = inMap;
@@ -67,7 +67,7 @@ public class DataKey implements IDataKey
 	}
 
 	@Override
-	public String getService()
+	public Integer getService()
 	{
 		return m_producerServiceKey;
 	}

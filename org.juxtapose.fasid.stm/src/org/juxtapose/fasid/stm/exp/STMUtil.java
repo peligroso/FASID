@@ -1,11 +1,12 @@
 package org.juxtapose.fasid.stm.exp;
 
+import static org.juxtapose.fasid.util.producerservices.ProducerServiceUtil.STM_SERVICE_KEY;
+
 import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.producer.IDataKey;
 import org.juxtapose.fasid.util.producer.IDataProducer;
 import org.juxtapose.fasid.util.producer.ProducerUtil;
-import static org.juxtapose.fasid.util.producerservices.ProducerServiceUtil.STM_SERVICE_KEY;
 
 /**
  * @author Pontus Jörgne
