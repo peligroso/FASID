@@ -164,6 +164,12 @@ final class PublishedData implements IPublishedData
 		return m_dataMap.valAt( inKey );
 	}
 
+	@Override
+	public DataType<?> getDeltaValue(int inKey)
+	{
+		return m_deltaMap.get( inKey );
+	}
+
 	
 	
 }
