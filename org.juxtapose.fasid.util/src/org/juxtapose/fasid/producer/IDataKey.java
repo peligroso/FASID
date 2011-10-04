@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.util.producer;
+package org.juxtapose.fasid.producer;
 
 public interface IDataKey
 {

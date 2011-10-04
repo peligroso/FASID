@@ -1,10 +1,10 @@
 package org.juxtapose.fasid.stm.osgi;
 
+import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
-import org.juxtapose.fasid.util.producer.IDataProducerService;
 import org.osgi.service.component.ComponentContext;
 
 /**

@@ -3,14 +3,14 @@ package org.juxtapose.fasid.stm.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fasid.util.producer.IDataKey;
-import org.juxtapose.fasid.util.producer.IDataProducer;
-import org.juxtapose.fasid.util.producer.IDataProducerService;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;

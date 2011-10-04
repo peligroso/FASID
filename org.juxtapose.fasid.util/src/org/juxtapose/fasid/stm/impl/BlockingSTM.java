@@ -6,15 +6,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fasid.util.lock.HashStripedLock;
-import org.juxtapose.fasid.util.producer.IDataKey;
-import org.juxtapose.fasid.util.producer.IDataProducer;
-import org.juxtapose.fasid.util.producer.IDataProducerService;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;

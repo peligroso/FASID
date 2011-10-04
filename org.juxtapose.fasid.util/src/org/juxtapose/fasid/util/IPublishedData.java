@@ -1,7 +1,7 @@
 package org.juxtapose.fasid.util;
 
+import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fasid.util.producer.IDataProducer;
 
 
 public interface IPublishedData {

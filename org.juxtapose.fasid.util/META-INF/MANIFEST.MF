@@ -1,13 +1,17 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Util
-Bundle-SymbolicName: org.juxtapose.fasid.util
+Bundle-Name: Fasid
+Bundle-SymbolicName: org.juxtapose.fasid
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.juxtapose.fasid.jsr166y;bundle-version="1.0.0"
 Export-Package: com.trifork.clj_ds,
+ org.juxtapose.fasid.producer,
+ org.juxtapose.fasid.stm.exp,
+ org.juxtapose.fasid.stm.osgi,
  org.juxtapose.fasid.util,
  org.juxtapose.fasid.util.data,
  org.juxtapose.fasid.util.lock,
- org.juxtapose.fasid.util.producer,
  org.juxtapose.fasid.util.producerservices
+Import-Package: org.osgi.framework;version="1.5.0",
+ org.osgi.service.component;version="1.1.0"

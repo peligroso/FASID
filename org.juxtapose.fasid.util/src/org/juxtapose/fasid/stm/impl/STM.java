@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
@@ -16,9 +19,6 @@ import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeString;
-import org.juxtapose.fasid.util.producer.IDataKey;
-import org.juxtapose.fasid.util.producer.IDataProducer;
-import org.juxtapose.fasid.util.producer.IDataProducerService;
 import org.juxtapose.fasid.util.producerservices.ProducerServiceUtil;
 
 import com.trifork.clj_ds.IPersistentMap;

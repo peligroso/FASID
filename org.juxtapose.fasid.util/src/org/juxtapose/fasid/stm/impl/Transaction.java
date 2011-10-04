@@ -3,9 +3,9 @@ package org.juxtapose.fasid.stm.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
-import org.juxtapose.fasid.util.producer.IDataProducer;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.PersistentHashMap;

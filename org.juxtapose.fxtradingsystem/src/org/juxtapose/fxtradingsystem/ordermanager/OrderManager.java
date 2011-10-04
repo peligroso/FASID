@@ -2,13 +2,13 @@ package org.juxtapose.fxtradingsystem.ordermanager;
 
 import java.util.HashMap;
 
+import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fasid.util.producer.IDataKey;
-import org.juxtapose.fasid.util.producer.IDataProducer;
-import org.juxtapose.fasid.util.producer.IDataProducerService;
 import org.juxtapose.fxtradingsystem.ProducerServiceConstants;
 
 public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataSubscriber
