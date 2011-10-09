@@ -1,108 +1,66 @@
 package org.juxtapose.fasid.stm.impl;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fasid.util.data.DataTypeString;
-import org.juxtapose.fasid.util.lock.HashStripedLock;
 
 import com.trifork.clj_ds.IPersistentMap;
-import com.trifork.clj_ds.IPersistentVector;
-import com.trifork.clj_ds.PersistentHashMap;
-import com.trifork.clj_ds.PersistentVector;
 
 public class BlockingSTM extends STM
 {
 	public final boolean FAIR_LOCKING = true; 
-	private ConcurrentHashMap<String, ReentrantLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantLock>();
-	
-	/**Used for creation and deletion of DataKey locks**/
-	protected HashStripedLock m_dataKeyMasterLock = new HashStripedLock( 256 );
+	private final ConcurrentHashMap<String, ReentrantLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantLock>();
 	
 	/**
-	 * @param inDataKey
-	 * @return
+	 * @param inKey
 	 */
-	protected PublishedData createPublishedData( IDataKey inDataKey, Status initState )
+	private void lock( String inKey )
 	{
-		PublishedData data;
+		boolean set = false;
 		
-		m_dataKeyMasterLock.lock( inDataKey.getKey() );
-		
-		ReentrantLock newLock = new ReentrantLock( FAIR_LOCKING );
-		ReentrantLock lock = m_keyToLock.putIfAbsent( inDataKey.getKey(), newLock );
-		lock = lock == null ? newLock : lock;
-		
-		lock.lock();
-		
-		m_dataKeyMasterLock.unlock( inDataKey.getKey() );
-		
-		data = m_keyToData.get( inDataKey );
-		
-		if( data == null )
+		do
 		{
-			IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
-			if( producerService == null )
+			ReentrantLock lock = m_keyToLock.get( inKey );
+			if( lock != null )
 			{
-				System.err.print( "Key: "+inDataKey+" not valid, producer service does not exist"  );
-				lock.unlock();
-				return null;
+				lock.lock();
+				set = m_keyToLock.replace( inKey, lock, lock );
+				if( ! set )
+					lock.unlock();
 			}
-			IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( initState.toString()));
-			Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
-			IPersistentVector<IDataSubscriber> subscribers = PersistentVector.emptyVector();
-			
-			IDataProducer producer = producerService.getDataProducer( inDataKey );
-			
-			data = new PublishedData( dataMap, deltaMap, subscribers, producer );
-			
-			m_keyToData.put( inDataKey.getKey() , data );
-			
+			else
+			{
+				lock = new ReentrantLock( FAIR_LOCKING );
+				lock.lock();
+				set = null == m_keyToLock.putIfAbsent( inKey, lock );
+			}
+		}while( !set );
+	}
+	
+	/**
+	 * @param inKey
+	 */
+	private void unlock( String inKey )
+	{
+		ReentrantLock lock = m_keyToLock.get( inKey );
+		if( lock != null )
+		{
 			lock.unlock();
-			
-			if( producer != null )
-				producer.start();
 		}
 		else
 		{
-			lock.unlock();
+			System.err.println("Tried to unlock already disposed lock");
 		}
-		
-		
-		return data;
 	}
+
 	
-	/**
-	 * @param inDataKey
-	 */
-	protected void removePublishedData( String inDataKey )
-	{
-		m_dataKeyMasterLock.lock( inDataKey );
-		
-		ReentrantLock lock = m_keyToLock.get( inDataKey );
-		if( lock != null )
-		{
-			lock.lock();
-			
-			m_keyToData.remove( inDataKey );
-			
-			lock.unlock();
-		}
-		
-		m_keyToLock.remove( inDataKey );
-		
-		m_dataKeyMasterLock.unlock( inDataKey );
-	}
 	
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.stm.impl.STM#commit(org.juxtapose.fasid.stm.impl.Transaction)
@@ -110,15 +68,7 @@ public class BlockingSTM extends STM
 	public void commit( Transaction inTransaction )
 	{
 		String dataKey = inTransaction.getDataKey();
-		ReentrantLock lock = m_keyToLock.get( dataKey );
-		
-		if( lock == null )
-		{
-			//data has been removed due to lack of interest, transaction is discarded
-			return;
-		}
-		
-		lock.lock();
+		lock( dataKey );
 		
 		PublishedData existingData = m_keyToData.get( dataKey );
 		if( existingData == null )
@@ -132,9 +82,13 @@ public class BlockingSTM extends STM
 		IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
 		Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
 		
-		existingData.setUpdatedData( inst, delta );
+		PublishedData newData = existingData.setUpdatedData( inst, delta );
 		
-		lock.unlock();
+		m_keyToData.put( dataKey, newData );
+		
+		unlock( dataKey );
+		
+		newData.updateSubscribers( dataKey );
 	}
 	
 	/* (non-Javadoc)
@@ -143,39 +97,86 @@ public class BlockingSTM extends STM
 	public void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber )
 	{
 		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
-		
 		if( producerService == null )
+		{
+			System.err.print( "Key: "+inDataKey+" not valid, producer service does not exist"  );
 			return;
+		}
 		
-		PublishedData data = m_keyToData.get( inDataKey.getKey() );
+		lock( inDataKey.getKey() );
 		
-		if( data == null )
-			createPublishedData( inDataKey, Status.ON_REQUEST );
+		PublishedData existingData = m_keyToData.get( inDataKey.getKey() );
 		
-		data = data.addSubscriber( inSubscriber );
+		IDataProducer producer = null;
 		
-		m_keyToData.put( inDataKey.getKey(), data );
+		PublishedData newData = null;
 		
-//		String key = producerService.subscribe( inQuery );
-//		
-//		if( key == null )
-//			return Status.NA;
-//		
-//		PublishedData data = m_keyToData.get( key );
-//		
-//		data.addSubscriber( inSubscriber );
-//		
-		return;
+		if( existingData == null )
+		{
+			//First subscriber
+			producer = producerService.getDataProducer( inDataKey );
+			newData = createEmptyData( Status.ON_REQUEST, producer, inSubscriber);
+			
+			m_keyToData.put( inDataKey.getKey(), newData );
+		}
+		else
+		{
+			newData = existingData.addSubscriber( inSubscriber );
+			m_keyToData.put( inDataKey.getKey(), newData );
+		}
 		
-		//...
+		unlock( inDataKey.getKey() );
 		
+		if( producer != null )
+			producer.start();
+		
+		inSubscriber.updateData( inDataKey.getKey(), newData, true );
 	}
 
+	
+	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#unsubscribeToData(org.juxtapose.fasid.producer.IDataKey, org.juxtapose.fasid.util.IDataSubscriber)
+	 */
 	@Override
-	public void unsubscribeToData(IDataKey inDataKey,
-			IDataSubscriber inSubscriber)
+	public void unsubscribeToData(IDataKey inDataKey, IDataSubscriber inSubscriber)
 	{
-		// TODO Auto-generated method stub
+		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
+		if( producerService == null )
+		{
+			System.err.print( "Key: "+inDataKey+" not valid, producer service does not exist"  );
+			return;
+		}
+		
+		lock( inDataKey.getKey() );
+		
+		PublishedData existingData = m_keyToData.get( inDataKey.getKey() );
+		
+		IDataProducer producer = null;
+		
+		if( existingData == null )
+		{
+			System.err.print( "Key: "+inDataKey+", Data has already been removed which is unconditional since an existing subscriber is requesting to unsubscribe"  );
+			return;
+		}
+		else
+		{
+			PublishedData newData = existingData.removeSubscriber( inSubscriber );
+			if( newData.hasSubscribers() )
+			{
+				m_keyToData.replace( inDataKey.getKey(), newData );
+			}
+			else
+			{
+				m_keyToData.remove( inDataKey.getKey() );
+				producer = existingData.getProducer();
+			}
+		}
+		
+		unlock( inDataKey.getKey() );
+		
+		if( producer != null )
+			producer.stop();
 		
 	}
 

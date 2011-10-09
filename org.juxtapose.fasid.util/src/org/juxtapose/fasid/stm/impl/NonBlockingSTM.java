@@ -37,14 +37,9 @@ public class NonBlockingSTM extends STM
 			if( existingData == null )
 			{
 				//First subscriber
-				IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, Status.ON_REQUEST );
-				Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
-				IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create(inSubscriber);
-				
 				IDataProducer producer = producerService.getDataProducer( inDataKey );
-			
-				PublishedData newData = new PublishedData( dataMap, deltaMap, subscribers, producer );
-			
+				PublishedData newData = createEmptyData( Status.ON_REQUEST, producer, inSubscriber);
+				
 				existingData = m_keyToData.putIfAbsent( inDataKey.getKey(), newData );
 				set = (existingData ==  null);
 				
@@ -62,7 +57,7 @@ public class NonBlockingSTM extends STM
 				if( !set )
 					existingData = m_keyToData.get( inDataKey.getKey() );
 				else
-					inSubscriber.updateData( existingData, true );
+					inSubscriber.updateData( inDataKey.getKey(), existingData, true );
 			}
 		}
 		while( !set );
@@ -148,7 +143,7 @@ public class NonBlockingSTM extends STM
 
 			}
 			while( !m_keyToData.replace( dataKey, existingData, newData ) );
-			newData.updateSubscribers();
+			newData.updateSubscribers( dataKey );
 
 		}catch( Exception e){}
 		

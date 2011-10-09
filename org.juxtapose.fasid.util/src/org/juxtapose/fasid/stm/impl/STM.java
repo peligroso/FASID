@@ -7,10 +7,12 @@ import static org.juxtapose.fasid.util.DataConstants.QUERY_KEY;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
+import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
@@ -43,9 +45,12 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	//Services that create producers to data id is service ID
 	protected ConcurrentHashMap<Integer, IDataProducerService> m_idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
 	
-	public void init()
+	private IExecutor m_executor;
+	
+	public void init( IExecutor inExecutor )
 	{
-		m_keyToData.put( PRODUCER_SERVICE_KEY.getKey(), createEmptyData(Status.OK, this));
+		m_executor = inExecutor;
+		m_keyToData.put( PRODUCER_SERVICE_KEY.getKey(), createEmptyData(Status.OK, this, this));
 		registerProducer( this, Status.OK );
 	}
 	
@@ -83,7 +88,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	 * @see org.juxtapose.fasid.util.producer.IDataProducerService#getKey(java.util.HashMap)
 	 */
 	@Override
-	public IDataKey getDataKey(HashMap<String, String> inQuery)
+	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
 	{
 		String val = inQuery.get( QUERY_KEY );
 		
@@ -94,13 +99,24 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		return null;
 	}
 	
+	public IDataKey getDataKey(Integer inProducerService, HashMap<Integer, String> inQuery)
+	{
+		IDataProducerService producerService = m_idToProducerService.get( inProducerService );
+		if( producerService == null )
+		{
+			System.err.println( "Producer "+inProducerService+" could not be found ");
+			return null;
+		}
+		return producerService.getDataKey( inQuery );
+	}
+	
 	@Override
 	public IDataProducer getDataProducer(IDataKey inDataKey)
 	{
 		return this;
 	}
 	
-	public void updateData( IPublishedData inData, boolean inFirstUpdate )
+	public void updateData( String inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
 		
 	}
@@ -114,12 +130,27 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		
 	}
 	
-	public static PublishedData createEmptyData( Status inStatus, IDataProducer inProducer )
+	public static PublishedData createEmptyData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber )
 	{
-		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, inStatus );
+		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( inStatus.toString()) );
 		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
-		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create();
+		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( inSubscriber );
 		
 		return new PublishedData( dataMap, deltaMap, subscribers, inProducer );
+	}
+	
+	public void execute( Runnable inRunnable )
+	{
+		m_executor.execute( inRunnable );
+	}
+	
+	public void execute( Runnable inRunnable, String inSequenceKey )
+	{
+		m_executor.execute( inRunnable, inSequenceKey );
+	}
+	
+	public void execute( Runnable inRunnable, ReentrantLock inSequenceLock )
+	{
+		m_executor.execute( inRunnable, inSequenceLock );
 	}
 }

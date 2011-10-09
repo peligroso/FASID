@@ -26,13 +26,13 @@ public class ProducerUtil
 			throw new IllegalArgumentException("Key-value pairs must be even ");
 		
 		HashMap<Integer, String> map = new HashMap<Integer, String>();
-		StringBuilder sb = new StringBuilder(inServiceKey);
+		StringBuilder sb = new StringBuilder(inServiceKey.toString());
 		sb.append(SERVICE_KEY_DELIM);
 		
 		for( int i = 0; i < inKeys.length; i++ )
 		{
 			Integer key = inKeys[i];
-			String value = inValues[i+1];
+			String value = inValues[i];
 			
 			map.put( key, value );
 			if( i != 0 )

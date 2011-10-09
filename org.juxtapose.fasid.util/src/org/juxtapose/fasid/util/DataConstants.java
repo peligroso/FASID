@@ -2,8 +2,7 @@ package org.juxtapose.fasid.util;
 
 public class DataConstants 
 {
-	public static String QUERY_KEY = "QUERY_KEY";
-	
-	public static String DATA_STATUS = "DATA_STATUS";
+	public static Integer QUERY_KEY = 1;
+	public static Integer DATA_STATUS = 2;
 	
 }

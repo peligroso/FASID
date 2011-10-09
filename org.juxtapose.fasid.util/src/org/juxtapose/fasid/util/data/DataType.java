@@ -18,5 +18,10 @@ public abstract class DataType<T> {
 	{
 		return get().toString();
 	}
+	
+	public boolean equals( DataType<?> inObject )
+	{
+		return get().equals( inObject.get() );
+	}
 
 }

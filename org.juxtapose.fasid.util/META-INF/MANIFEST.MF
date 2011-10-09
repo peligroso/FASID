@@ -7,7 +7,9 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.juxtapose.fasid.jsr166y;bundle-version="1.0.0"
 Export-Package: com.trifork.clj_ds,
  org.juxtapose.fasid.producer,
+ org.juxtapose.fasid.producer.executor,
  org.juxtapose.fasid.stm.exp,
+ org.juxtapose.fasid.stm.impl,
  org.juxtapose.fasid.stm.osgi,
  org.juxtapose.fasid.util,
  org.juxtapose.fasid.util.data,

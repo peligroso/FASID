@@ -8,6 +8,11 @@ public class DataTypeBigDecimal extends DataType<BigDecimal>{
 	{
 		super( inValue );
 	}
+	
+	public DataTypeBigDecimal( double inValue) 
+	{
+		super( new BigDecimal( inValue ) );
+	}
 
 
 }

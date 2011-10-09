@@ -40,7 +40,7 @@ public class DataKey implements IDataKey
 	 * @param inKey
 	 * @return
 	 */
-	public String getValue( String inKey )
+	public String getValue( Integer inKey )
 	{
 		return m_keyMap.get( inKey );
 	}

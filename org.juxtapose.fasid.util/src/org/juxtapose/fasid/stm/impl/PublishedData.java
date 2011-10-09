@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -39,12 +40,12 @@ final class PublishedData implements IPublishedData
 		m_producer = inProducer;
 	}
 	
-	protected void updateSubscribers()
+	protected void updateSubscribers( String inKey )
 	{
 		for( int i = 0; i < m_subscribers.length(); i++ )
 		{
 			IDataSubscriber subscriber = m_subscribers.nth( i );
-			subscriber.updateData( this, false );
+			subscriber.updateData( inKey, this, false );
 		}
 	}
 	

@@ -1,21 +1,29 @@
 package org.juxtapose.fxtradingsystem.ordermanager;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
+import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
+import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
+import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
+import org.juxtapose.fasid.util.data.DataTypeLong;
+import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.ProducerServiceConstants;
+import org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants;
 
 public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataSubscriber
 {
-
+	volatile String priceKey = null;
+	
 	@Override
-	public IDataKey getDataKey(HashMap<String, String> inQuery)
+	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -29,12 +37,53 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	}
 
 	@Override
-	public void updateData(IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( String inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
+		if( inKey.equals( priceKey ) )
+		{
+			DataTypeString status = (DataTypeString)inData.getValue( DataConstants.DATA_STATUS );
+			if( Status.valueOf( status.get() ) == Status.OK )
+			{
+				DataTypeBigDecimal bid = (DataTypeBigDecimal)inData.getValue( PriceEngineDataConstants.BID );
+				DataTypeBigDecimal ask = (DataTypeBigDecimal)inData.getValue( PriceEngineDataConstants.ASK );
+				DataTypeBigDecimal spread = (DataTypeBigDecimal)inData.getValue( PriceEngineDataConstants.SPREAD );
+				
+				DataTypeLong sequence = (DataTypeLong)inData.getValue( PriceEngineDataConstants.SEQUENCE );
+				
+				BigDecimal validateSpread = ask.get().subtract( bid.get() );
+				boolean valid = validateSpread.equals( spread.get() );
+				if( ! valid )
+				{
+					System.err.println( "Price is not valid : "+validateSpread+" != "+spread.get() );
+				}
+				else
+				{
+					System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence );
+				}
+			}
+			else
+			{
+				DataType<?> seq = (DataTypeLong)inData.getValue( PriceEngineDataConstants.SEQUENCE );
+				if( seq != null )
+					System.out.println( "PriceStatus is "+status+seq.get() );
+				else
+					System.out.println( "PriceStatus is "+status );
+			}
+			return;
+		}
 		DataType<?> dataValue = inData.getValue( ProducerServiceConstants.PRICE_ENGINE );
 		if( dataValue != null )
 		{
 			System.out.println( "Price engine is registered with status: "+dataValue);
+			
+			HashMap<Integer, String> query = new HashMap<Integer, String>();
+			query.put( PriceEngineDataConstants.CCY1, "EUR");
+			query.put( PriceEngineDataConstants.CCY2, "SEK");
+			
+			IDataKey dataKey = m_stm.getDataKey( ProducerServiceConstants.PRICE_ENGINE, query);
+			priceKey = dataKey.getKey();
+			
+			m_stm.subscribeToData(dataKey, this);
 		}
 		else
 		{
