@@ -1,6 +1,6 @@
 package org.juxtapose.fasid.stm.exp;
 
-import static org.juxtapose.fasid.util.producerservices.ProducerServiceUtil.STM_SERVICE_KEY;
+import static org.juxtapose.fasid.util.producerservices.ProducerServiceConstants.STM_SERVICE_KEY;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;

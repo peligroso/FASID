@@ -5,7 +5,6 @@ import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICE_KEY;
 import static org.juxtapose.fasid.util.DataConstants.QUERY_KEY;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -15,18 +14,11 @@ import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
-import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeString;
-import org.juxtapose.fasid.util.producerservices.ProducerServiceUtil;
-
-import com.trifork.clj_ds.IPersistentMap;
-import com.trifork.clj_ds.IPersistentVector;
-import com.trifork.clj_ds.PersistentHashMap;
-import com.trifork.clj_ds.PersistentVector;
+import org.juxtapose.fasid.util.producerservices.ProducerServiceConstants;
 
 /**
  * @author Pontus Jörgne
@@ -41,16 +33,21 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	/**Used for stack validation**/
 	static String COMMIT_METHOD = "commit";
 	
-	protected ConcurrentHashMap<String, PublishedData> m_keyToData = new ConcurrentHashMap<String, PublishedData>();	
+	protected ConcurrentHashMap<String, IPublishedData> keyToData = new ConcurrentHashMap<String, IPublishedData>();	
 	//Services that create producers to data id is service ID
-	protected ConcurrentHashMap<Integer, IDataProducerService> m_idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
+	protected ConcurrentHashMap<Integer, IDataProducerService> idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
 	
-	private IExecutor m_executor;
+	private IExecutor executor;
 	
+	private IPublishedDataFactory dataFactory;
+	
+	/**
+	 * @param inExecutor
+	 */
 	public void init( IExecutor inExecutor )
 	{
-		m_executor = inExecutor;
-		m_keyToData.put( PRODUCER_SERVICE_KEY.getKey(), createEmptyData(Status.OK, this, this));
+		executor = inExecutor;
+		keyToData.put( PRODUCER_SERVICE_KEY.getKey(), createEmptyData(Status.OK, this, this));
 		registerProducer( this, Status.OK );
 	}
 	
@@ -61,7 +58,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	public void registerProducer( final IDataProducerService inProducerService, final Status initState )
 	{
 		Integer id = inProducerService.getServiceId();
-		m_idToProducerService.put( id, inProducerService );
+		idToProducerService.put( id, inProducerService );
 		
 		commit( new DataTransaction( PRODUCER_SERVICE_KEY.getKey() )
 		{
@@ -81,7 +78,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	@Override
 	public Integer getServiceId()
 	{
-		return ProducerServiceUtil.STM_SERVICE_KEY;
+		return ProducerServiceConstants.STM_SERVICE_KEY;
 	}
 
 	/* (non-Javadoc)
@@ -99,9 +96,12 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		return null;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#getDataKey(java.lang.Integer, java.util.HashMap)
+	 */
 	public IDataKey getDataKey(Integer inProducerService, HashMap<Integer, String> inQuery)
 	{
-		IDataProducerService producerService = m_idToProducerService.get( inProducerService );
+		IDataProducerService producerService = idToProducerService.get( inProducerService );
 		if( producerService == null )
 		{
 			System.err.println( "Producer "+inProducerService+" could not be found ");
@@ -130,27 +130,82 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		
 	}
 	
-	public static PublishedData createEmptyData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber )
+	/**
+	 * @param inDataFactory
+	 */
+	public void setDataFactory( IPublishedDataFactory inDataFactory )
 	{
-		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( inStatus.toString()) );
-		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
-		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( inSubscriber );
-		
-		return new PublishedData( dataMap, deltaMap, subscribers, inProducer );
+		dataFactory = inDataFactory;
 	}
 	
+	/**
+	 * @param inStatus
+	 * @param inProducer
+	 * @param inSubscriber
+	 * @return
+	 */
+	public IPublishedData createEmptyData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber )
+	{
+		if( dataFactory == null )
+		{
+			logError( "Datafactory has not been initiated" );
+			System.exit(1);
+		}
+		return dataFactory.createData(inStatus, inProducer, inSubscriber);
+	}
+	
+	/**
+	 * @param inStatus
+	 * @param inProducer
+	 * @return
+	 */
+	public IPublishedData createEmptyData( Status inStatus, IDataProducer inProducer )
+	{
+		if( dataFactory == null )
+		{
+			logError( "Datafactory has not been initiated" );
+			System.exit(1);
+		}
+		return dataFactory.createData(inStatus, inProducer );
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#execute(java.lang.Runnable)
+	 */
 	public void execute( Runnable inRunnable )
 	{
-		m_executor.execute( inRunnable );
+		executor.execute( inRunnable );
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#execute(java.lang.Runnable, java.lang.String)
+	 */
 	public void execute( Runnable inRunnable, String inSequenceKey )
 	{
-		m_executor.execute( inRunnable, inSequenceKey );
+		executor.execute( inRunnable, inSequenceKey );
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#execute(java.lang.Runnable, java.util.concurrent.locks.ReentrantLock)
+	 */
 	public void execute( Runnable inRunnable, ReentrantLock inSequenceLock )
 	{
-		m_executor.execute( inRunnable, inSequenceLock );
+		executor.execute( inRunnable, inSequenceLock );
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#logInfo(java.lang.String)
+	 */
+	public void logInfo( String inMessage )
+	{
+		System.out.println( inMessage );
+	}
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.exp.ISTM#logError(java.lang.String)
+	 */
+	public void logError( String inMessage )
+	{
+		System.err.println( inMessage );
+	}
+	
 }

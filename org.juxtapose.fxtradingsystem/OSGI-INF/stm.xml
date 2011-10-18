@@ -4,4 +4,5 @@
    <service>
       <provide interface="org.juxtapose.fasid.stm.exp.ISTM"/>
    </service>
+   <property name="PROP_DATA_FACTORY_CLASS" type="String" value="org.juxtapose.fasid.stm.impl.PersistentDataFactory"/>
 </scr:component>

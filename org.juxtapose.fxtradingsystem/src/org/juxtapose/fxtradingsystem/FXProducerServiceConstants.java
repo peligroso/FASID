@@ -1,6 +1,8 @@
 package org.juxtapose.fxtradingsystem;
 
-public class ProducerServiceConstants
+import org.juxtapose.fasid.util.producerservices.ProducerServiceConstants;
+
+public class FXProducerServiceConstants extends ProducerServiceConstants
 {
 	public static int BASE = 100;
 	public static int PRICE_ENGINE = BASE+1;

@@ -6,48 +6,77 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.producer.ProducerUtil;
-import org.juxtapose.fasid.stm.exp.ISTM;
-import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
-import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fxtradingsystem.ProducerServiceConstants;
+import org.juxtapose.fxtradingsystem.FXDataConstants;
+import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
 
+/**
+ * @author Pontus Jörgne
+ * 17 okt 2011
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ */
 public class PriceEngine extends DataProducerService implements IPriceEngine, IDataProducerService, IDataSubscriber
 {
 
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.producer.IDataProducerService#getDataKey(java.util.HashMap)
+	 */
 	@Override
 	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
 	{
-		String ccy1 = inQuery.get( PriceEngineDataConstants.CCY1 );
-		String ccy2 = inQuery.get( PriceEngineDataConstants.CCY2 );
+		String type = inQuery.get( PriceEngineDataConstants.TYPE );
+		if( type == null )
+		{
+			stm.logError( "No type defined for dataKey "+inQuery );
+			return null;
+		}
+		if( type.equals( PriceEngineDataConstants.STATE_TYPE_CCYMODEL ))
+			return PriceEngineDataConstants.CCY_MODEL_KEY;
 		
-		return ProducerUtil.createDataKey( getServiceId(), new Integer[]{PriceEngineDataConstants.CCY1, PriceEngineDataConstants.CCY2}, 
-															new String[]{ccy1, ccy2} );
+		else if( type.equals( PriceEngineDataConstants.STATE_TYPE_PRICE ))
+		{
+			String ccy1 = inQuery.get( FXDataConstants.CCY1 );
+			String ccy2 = inQuery.get( FXDataConstants.CCY2 );
+		
+			return ProducerUtil.createDataKey( getServiceId(), new Integer[]{FXDataConstants.CCY1, FXDataConstants.CCY2},new String[]{ccy1, ccy2} );
+		}
+		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.producer.IDataProducerService#getDataProducer(org.juxtapose.fasid.producer.IDataKey)
+	 */
 	@Override
 	public IDataProducer getDataProducer(IDataKey inDataKey)
 	{
-		String ccy1 = inDataKey.getValue( PriceEngineDataConstants.CCY1 );
-		String ccy2 = inDataKey.getValue( PriceEngineDataConstants.CCY2 );
+		if( inDataKey == PriceEngineDataConstants.CCY_MODEL_KEY )
+		{
+			return new CcyModelProducer( stm );
+		}
 		
-		return new SpotPriceProducer(inDataKey.getKey(), ccy1, ccy2, m_stm);
+		String ccy1 = inDataKey.getValue( FXDataConstants.CCY1 );
+		String ccy2 = inDataKey.getValue( FXDataConstants.CCY2 );
+		
+		return new SpotPriceProducer(inDataKey.getKey(), ccy1, ccy2, stm);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.util.IDataSubscriber#updateData(java.lang.String, org.juxtapose.fasid.util.IPublishedData, boolean)
+	 */
 	@Override
 	public void updateData( String iKey, IPublishedData inData, boolean inFirstUpdate)
 	{
-		DataType<?> dataValue = inFirstUpdate ? inData.getValue( ProducerServiceConstants.ORDER_MANAGER ) : inData.getDeltaValue( ProducerServiceConstants.ORDER_MANAGER );
+		DataType<?> dataValue = inFirstUpdate ? inData.getValue( FXProducerServiceConstants.ORDER_MANAGER ) : inData.getDeltaValue( FXProducerServiceConstants.ORDER_MANAGER );
 		if( dataValue != null )
 		{
-			System.out.println( "OrderService is registered with status: "+dataValue);
+			stm.logInfo( "OrderService is registered with status: "+dataValue);
 		}
 		else
 		{
-			System.out.println( "OrderService is not registered");
+			stm.logInfo( "OrderService is not registered");
 		}
 		
 	}

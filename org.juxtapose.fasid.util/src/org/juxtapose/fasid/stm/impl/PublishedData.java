@@ -40,7 +40,7 @@ final class PublishedData implements IPublishedData
 		m_producer = inProducer;
 	}
 	
-	protected void updateSubscribers( String inKey )
+	public void updateSubscribers( String inKey )
 	{
 		for( int i = 0; i < m_subscribers.length(); i++ )
 		{
@@ -53,7 +53,7 @@ final class PublishedData implements IPublishedData
 	 * @param inSubscriber
 	 * @return
 	 */
-	public PublishedData addSubscriber( IDataSubscriber inSubscriber )
+	public IPublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.assocN(m_subscribers.count(), inSubscriber );
 		return new PublishedData( m_dataMap, m_deltaMap, newSub, m_producer );
@@ -63,7 +63,7 @@ final class PublishedData implements IPublishedData
 	 * @param inSubscriber
 	 * @return
 	 */
-	public PublishedData removeSubscriber( IDataSubscriber inSubscriber )
+	public IPublishedData removeSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = m_subscribers.cons( inSubscriber );
 		return new PublishedData( m_dataMap, m_deltaMap, newSub, m_producer );
@@ -83,7 +83,7 @@ final class PublishedData implements IPublishedData
 	 * @return
 	 * @throws Exception
 	 */
-	public PublishedData putDataValue( Integer inKey, DataType<?> inValue )throws Exception
+	public IPublishedData putDataValue( Integer inKey, DataType<?> inValue )throws Exception
 	{
 		IPersistentMap<Integer, DataType<?>> newMap;
 		
@@ -100,7 +100,7 @@ final class PublishedData implements IPublishedData
 	 * @return
 	 * @throws Exception
 	 */
-	public PublishedData putDataValues( HashMap<Integer, DataType<?>> inStateTransitionMap )throws Exception
+	public IPublishedData putDataValues( HashMap<Integer, DataType<?>> inStateTransitionMap )throws Exception
 	{
 		IPersistentMap<Integer, DataType<?>> newDataMap = m_dataMap;
 		
@@ -120,7 +120,7 @@ final class PublishedData implements IPublishedData
 	 * @param inDataMap
 	 * @return
 	 */
-	public PublishedData setDataMap( IPersistentMap<Integer, DataType<?>> inDataMap )
+	public IPublishedData setDataMap( IPersistentMap<Integer, DataType<?>> inDataMap )
 	{
 		return new PublishedData( inDataMap, m_deltaMap, m_subscribers, m_producer );
 	}
@@ -129,7 +129,7 @@ final class PublishedData implements IPublishedData
 	 * @param inDataMap
 	 * @return
 	 */
-	public PublishedData setUpdatedData( IPersistentMap<Integer, DataType<?>> inDataMap, Map<Integer, DataType<?>> inDeltaMap )
+	public IPublishedData setUpdatedData( IPersistentMap<Integer, DataType<?>> inDataMap, Map<Integer, DataType<?>> inDeltaMap )
 	{
 		return new PublishedData( inDataMap, inDeltaMap, m_subscribers, m_producer );
 	}

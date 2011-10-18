@@ -8,6 +8,7 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
+import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 
@@ -56,7 +57,7 @@ public class BlockingSTM extends STM
 		}
 		else
 		{
-			System.err.println("Tried to unlock already disposed lock");
+			logError("Tried to unlock already disposed lock");
 		}
 	}
 
@@ -70,7 +71,7 @@ public class BlockingSTM extends STM
 		String dataKey = inTransaction.getDataKey();
 		lock( dataKey );
 		
-		PublishedData existingData = m_keyToData.get( dataKey );
+		IPublishedData existingData = keyToData.get( dataKey );
 		if( existingData == null )
 		{
 			//data has been removed due to lack of interest, transaction is discarded
@@ -82,9 +83,9 @@ public class BlockingSTM extends STM
 		IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
 		Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
 		
-		PublishedData newData = existingData.setUpdatedData( inst, delta );
+		IPublishedData newData = existingData.setUpdatedData( inst, delta );
 		
-		m_keyToData.put( dataKey, newData );
+		keyToData.put( dataKey, newData );
 		
 		unlock( dataKey );
 		
@@ -96,20 +97,20 @@ public class BlockingSTM extends STM
 	 */
 	public void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber )
 	{
-		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
+		IDataProducerService producerService = idToProducerService.get( inDataKey.getService() );
 		if( producerService == null )
 		{
-			System.err.print( "Key: "+inDataKey+" not valid, producer service does not exist"  );
+			logError( "Key: "+inDataKey+" not valid, producer service does not exist"  );
 			return;
 		}
 		
 		lock( inDataKey.getKey() );
 		
-		PublishedData existingData = m_keyToData.get( inDataKey.getKey() );
+		IPublishedData existingData = keyToData.get( inDataKey.getKey() );
 		
 		IDataProducer producer = null;
 		
-		PublishedData newData = null;
+		IPublishedData newData = null;
 		
 		if( existingData == null )
 		{
@@ -117,12 +118,12 @@ public class BlockingSTM extends STM
 			producer = producerService.getDataProducer( inDataKey );
 			newData = createEmptyData( Status.ON_REQUEST, producer, inSubscriber);
 			
-			m_keyToData.put( inDataKey.getKey(), newData );
+			keyToData.put( inDataKey.getKey(), newData );
 		}
 		else
 		{
 			newData = existingData.addSubscriber( inSubscriber );
-			m_keyToData.put( inDataKey.getKey(), newData );
+			keyToData.put( inDataKey.getKey(), newData );
 		}
 		
 		unlock( inDataKey.getKey() );
@@ -141,16 +142,16 @@ public class BlockingSTM extends STM
 	@Override
 	public void unsubscribeToData(IDataKey inDataKey, IDataSubscriber inSubscriber)
 	{
-		IDataProducerService producerService = m_idToProducerService.get( inDataKey.getService() );
+		IDataProducerService producerService = idToProducerService.get( inDataKey.getService() );
 		if( producerService == null )
 		{
-			System.err.print( "Key: "+inDataKey+" not valid, producer service does not exist"  );
+			logError( "Key: "+inDataKey+" not valid, producer service does not exist"  );
 			return;
 		}
 		
 		lock( inDataKey.getKey() );
 		
-		PublishedData existingData = m_keyToData.get( inDataKey.getKey() );
+		IPublishedData existingData = keyToData.get( inDataKey.getKey() );
 		
 		IDataProducer producer = null;
 		
@@ -161,14 +162,14 @@ public class BlockingSTM extends STM
 		}
 		else
 		{
-			PublishedData newData = existingData.removeSubscriber( inSubscriber );
+			IPublishedData newData = existingData.removeSubscriber( inSubscriber );
 			if( newData.hasSubscribers() )
 			{
-				m_keyToData.replace( inDataKey.getKey(), newData );
+				keyToData.replace( inDataKey.getKey(), newData );
 			}
 			else
 			{
-				m_keyToData.remove( inDataKey.getKey() );
+				keyToData.remove( inDataKey.getKey() );
 				producer = existingData.getProducer();
 			}
 		}

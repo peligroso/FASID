@@ -15,8 +15,8 @@ import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
 import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeString;
-import org.juxtapose.fxtradingsystem.ProducerServiceConstants;
-import org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants;
+import org.juxtapose.fxtradingsystem.FXDataConstants;
+import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
 
 public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataSubscriber
 {
@@ -44,11 +44,11 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			DataTypeString status = (DataTypeString)inData.getValue( DataConstants.DATA_STATUS );
 			if( Status.valueOf( status.get() ) == Status.OK )
 			{
-				DataTypeBigDecimal bid = (DataTypeBigDecimal)inData.getValue( PriceEngineDataConstants.BID );
-				DataTypeBigDecimal ask = (DataTypeBigDecimal)inData.getValue( PriceEngineDataConstants.ASK );
-				DataTypeBigDecimal spread = (DataTypeBigDecimal)inData.getValue( PriceEngineDataConstants.SPREAD );
+				DataTypeBigDecimal bid = (DataTypeBigDecimal)inData.getValue( FXDataConstants.BID );
+				DataTypeBigDecimal ask = (DataTypeBigDecimal)inData.getValue( FXDataConstants.ASK );
+				DataTypeBigDecimal spread = (DataTypeBigDecimal)inData.getValue( FXDataConstants.SPREAD );
 				
-				DataTypeLong sequence = (DataTypeLong)inData.getValue( PriceEngineDataConstants.SEQUENCE );
+				DataTypeLong sequence = (DataTypeLong)inData.getValue( FXDataConstants.SEQUENCE );
 				
 				BigDecimal validateSpread = ask.get().subtract( bid.get() );
 				boolean valid = validateSpread.equals( spread.get() );
@@ -63,7 +63,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			}
 			else
 			{
-				DataType<?> seq = (DataTypeLong)inData.getValue( PriceEngineDataConstants.SEQUENCE );
+				DataType<?> seq = (DataTypeLong)inData.getValue( FXDataConstants.SEQUENCE );
 				if( seq != null )
 					System.out.println( "PriceStatus is "+status+seq.get() );
 				else
@@ -71,19 +71,19 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			}
 			return;
 		}
-		DataType<?> dataValue = inData.getValue( ProducerServiceConstants.PRICE_ENGINE );
+		DataType<?> dataValue = inData.getValue( FXProducerServiceConstants.PRICE_ENGINE );
 		if( dataValue != null )
 		{
 			System.out.println( "Price engine is registered with status: "+dataValue);
 			
 			HashMap<Integer, String> query = new HashMap<Integer, String>();
-			query.put( PriceEngineDataConstants.CCY1, "EUR");
-			query.put( PriceEngineDataConstants.CCY2, "SEK");
+			query.put( FXDataConstants.CCY1, "EUR");
+			query.put( FXDataConstants.CCY2, "SEK");
 			
-			IDataKey dataKey = m_stm.getDataKey( ProducerServiceConstants.PRICE_ENGINE, query);
+			IDataKey dataKey = stm.getDataKey( FXProducerServiceConstants.PRICE_ENGINE, query);
 			priceKey = dataKey.getKey();
 			
-			m_stm.subscribeToData(dataKey, this);
+			stm.subscribeToData(dataKey, this);
 		}
 		else
 		{

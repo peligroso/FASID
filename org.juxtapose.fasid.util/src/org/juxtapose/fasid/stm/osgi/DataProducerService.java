@@ -14,7 +14,7 @@ import org.osgi.service.component.ComponentContext;
  */
 public abstract class DataProducerService implements IDataProducerService, IDataSubscriber
 {
-	protected ISTM m_stm;
+	protected ISTM stm;
 	private int ID;
 	
 	public void activate( ComponentContext inContext )
@@ -28,7 +28,7 @@ public abstract class DataProducerService implements IDataProducerService, IData
 	
 	public void bindSTM( ISTM inSTM )
 	{
-		m_stm = inSTM;
+		stm = inSTM;
 	}
 	
 	
@@ -36,9 +36,9 @@ public abstract class DataProducerService implements IDataProducerService, IData
 	{
 		ID = inID;
 		
-		m_stm.registerProducer( this, Status.OK );
+		stm.registerProducer( this, Status.OK );
 		
-		m_stm.subscribeToData(STMUtil.PRODUCER_SERVICE_KEY, this);
+		stm.subscribeToData(STMUtil.PRODUCER_SERVICE_KEY, this);
 	}
 
 	@Override

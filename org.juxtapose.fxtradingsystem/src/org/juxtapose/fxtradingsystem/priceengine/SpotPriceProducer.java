@@ -11,6 +11,7 @@ import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
 import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeString;
+import org.juxtapose.fxtradingsystem.FXDataConstants;
 
 /**
  * @author Pontus Jörgne
@@ -73,9 +74,9 @@ public class SpotPriceProducer implements IDataProducer
 						{
 							if( first )
 								addValue(DataConstants.DATA_STATUS, new DataTypeString(Status.OK.toString()) );
-							addValue(PriceEngineDataConstants.CCY1, new DataTypeString(ccy1) );
-							addValue(PriceEngineDataConstants.CCY2, new DataTypeString(ccy2) );
-							addValue(PriceEngineDataConstants.SEQUENCE, new DataTypeLong(seq) );
+							addValue(FXDataConstants.CCY1, new DataTypeString(ccy1) );
+							addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
+							addValue(FXDataConstants.SEQUENCE, new DataTypeLong(seq) );
 							
 							addPriceUpdate( rand, this );
 						}
@@ -97,9 +98,9 @@ public class SpotPriceProducer implements IDataProducer
 		
 		final DataTypeBigDecimal spread = new DataTypeBigDecimal( ask.get().subtract( bid.get() ) );
 		
-		inTransaction.addValue(PriceEngineDataConstants.BID, bid );
-		inTransaction.addValue(PriceEngineDataConstants.ASK, ask );
-		inTransaction.addValue(PriceEngineDataConstants.SPREAD, spread );
+		inTransaction.addValue(FXDataConstants.BID, bid );
+		inTransaction.addValue(FXDataConstants.ASK, ask );
+		inTransaction.addValue(FXDataConstants.SPREAD, spread );
 	}
 
 
