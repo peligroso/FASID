@@ -1,31 +1,33 @@
-
 package org.juxtapose.fxtradingsystem.priceengine;
 
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
-import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
-import org.juxtapose.fasid.util.data.DataTypeData;
+import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
+import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.*;
 
 /**
  * @author Pontus Jörgne
- * 17 okt 2011
+ * Dec 11, 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class CcyModelProducer implements IDataProducer
+public class CcyProducer implements IDataProducer
 {
 	final ISTM stm;
+	final String ccy;
 	
 	/**
 	 * @param inSTM
+	 * @param inCcy
 	 */
-	public CcyModelProducer( ISTM inSTM )
+	public CcyProducer(ISTM inSTM, String inCcy )
 	{
 		stm = inSTM;
+		ccy = inCcy;
 	}
 	
 	@Override
@@ -42,7 +44,12 @@ public class CcyModelProducer implements IDataProducer
 					public void execute()
 					{
 						addValue(DataConstants.FIELD_DATA_STATUS, new DataTypeString(Status.OK.toString()) );
-//						addValue(FXDataConstants.CCY1, new DataTypeString(ccy1) );
+						addValue(FXDataConstants.FIELD_PIP, new DataTypeLong(10000L) );
+						addValue(FXDataConstants.FIELD_DECIMALS, new DataTypeLong(5L) );
+						if( ccy.equals(EUR))
+							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(USD) );
+						else
+							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(EUR) );
 //						addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
 //						addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
 //						
@@ -51,19 +58,14 @@ public class CcyModelProducer implements IDataProducer
 				});
 			}
 		});
+
 	}
-	
-//	public DataTypeData getCcyData( int inCcy1 )
-//	{
-//		IPublishedData data = stm.createEmptyData(Status.OK, this, null);
-//		data.putDataValue(inKey, inValue);
-//	}
 
 	@Override
 	public void stop()
 	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

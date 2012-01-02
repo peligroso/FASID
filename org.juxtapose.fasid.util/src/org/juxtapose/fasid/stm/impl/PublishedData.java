@@ -10,6 +10,7 @@ import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
+import org.juxtapose.fasid.util.data.DataTypeRef;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
@@ -109,8 +110,14 @@ final class PublishedData implements IPublishedData
 			DataType<?> value = inStateTransitionMap.get( key );
 			if( value instanceof DataTypeNull )
 				newDataMap = newDataMap.without( key );
-			else
+			else if( value instanceof DataTypeRef )
+			{
 				newDataMap = newDataMap.assoc( key, value );
+			}
+			else
+			{
+				newDataMap = newDataMap.assoc( key, value );
+			}
 		}
 		
 		return new PublishedData( newDataMap, m_deltaMap, m_subscribers, m_producer );

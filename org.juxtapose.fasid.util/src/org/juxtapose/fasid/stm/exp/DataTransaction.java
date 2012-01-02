@@ -2,6 +2,7 @@ package org.juxtapose.fasid.stm.exp;
 
 import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.data.DataType;
+import org.juxtapose.fasid.util.data.DataTypeRef;
 
 public abstract class DataTransaction extends Transaction
 {
@@ -19,6 +20,11 @@ public abstract class DataTransaction extends Transaction
 	public void removeValue( Integer inKey )throws Exception
 	{
 		super.removeValue( inKey );
+	}
+	
+	public void addReference( Integer inKey, DataTypeRef inDataRef )
+	{
+		super.addReference( inKey, inDataRef );
 	}
 
 }

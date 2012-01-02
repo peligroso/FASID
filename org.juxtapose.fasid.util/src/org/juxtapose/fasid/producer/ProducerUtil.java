@@ -9,7 +9,7 @@ import java.util.HashMap;
  */
 public class ProducerUtil
 {
-	public static Integer SINGLE_VALUE_DATA_KEY = 1;
+	public static Integer FIELD_SINGLE_VALUE_DATA_KEY = 1;
 	public static String AND = "&";
 	public static String EQUALS = "=";
 	public static String SERVICE_KEY_DELIM = ":";
@@ -20,13 +20,15 @@ public class ProducerUtil
 	 * @param inKeyValues
 	 * @return
 	 */
-	public static IDataKey createDataKey( Integer inServiceKey, Integer[] inKeys, String[] inValues )
+	public static IDataKey createDataKey( Integer inServiceKey, String inType, Integer[] inKeys, String[] inValues )
 	{
 		if( inKeys.length != inValues.length )
 			throw new IllegalArgumentException("Key-value pairs must be even ");
 		
 		HashMap<Integer, String> map = new HashMap<Integer, String>();
 		StringBuilder sb = new StringBuilder(inServiceKey.toString());
+		sb.append(SERVICE_KEY_DELIM);
+		sb.append(inType);
 		sb.append(SERVICE_KEY_DELIM);
 		
 		for( int i = 0; i < inKeys.length; i++ )
@@ -43,19 +45,27 @@ public class ProducerUtil
 			sb.append( value );
 		}
 		
-		return new DataKey( inServiceKey, map, sb.toString() ); 
+		return new DataKey( inServiceKey, inType, map, sb.toString() ); 
 	}
 	
 	/**
 	 * @param inSingleValue
 	 * @return
 	 */
-	public static IDataKey createDataKey( Integer inServiceKey, String inSingleValue )
+	public static IDataKey createDataKey( Integer inServiceKey, String inType, String inSingleValue )
 	{
 		HashMap<Integer, String> map = new HashMap<Integer, String>();
-		map.put( SINGLE_VALUE_DATA_KEY, inSingleValue );
-		String key = inServiceKey+SERVICE_KEY_DELIM+SINGLE_VALUE_DATA_KEY+EQUALS+inSingleValue;
+		map.put( FIELD_SINGLE_VALUE_DATA_KEY, inSingleValue );
+		String key = inServiceKey+SERVICE_KEY_DELIM+inType+SERVICE_KEY_DELIM+FIELD_SINGLE_VALUE_DATA_KEY+EQUALS+inSingleValue;
 		
-		return new DataKey( inServiceKey, map, key ); 
+		return new DataKey( inServiceKey, inType, map, key ); 
+	}
+	
+	public static IDataKey createDataKey( Integer inServiceKey, String inType )
+	{
+		HashMap<Integer, String> map = new HashMap<Integer, String>();
+		String key = inServiceKey+SERVICE_KEY_DELIM+inType;
+		
+		return new DataKey( inServiceKey, inType, map, key ); 
 	}
 }

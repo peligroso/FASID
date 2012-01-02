@@ -30,7 +30,7 @@ public class PersistentDataFactory implements IPublishedDataFactory
 	 */
 	public IPublishedData createData( Status inStatus, IDataProducer inProducer )
 	{
-		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( inStatus.toString()) );
+		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.FIELD_DATA_STATUS, new DataTypeString( inStatus.toString()) );
 		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( );
 		
@@ -42,7 +42,7 @@ public class PersistentDataFactory implements IPublishedDataFactory
 	 */
 	public IPublishedData createData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber )
 	{
-		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.DATA_STATUS, new DataTypeString( inStatus.toString()) );
+		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.FIELD_DATA_STATUS, new DataTypeString( inStatus.toString()) );
 		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( inSubscriber );
 		

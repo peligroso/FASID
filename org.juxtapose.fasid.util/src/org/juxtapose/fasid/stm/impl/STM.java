@@ -2,9 +2,11 @@ package org.juxtapose.fasid.stm.impl;
 
 import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICES;
 import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICE_KEY;
-import static org.juxtapose.fasid.util.DataConstants.QUERY_KEY;
+import static org.juxtapose.fasid.util.DataConstants.FIELD_QUERY_KEY;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -33,9 +35,11 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	/**Used for stack validation**/
 	static String COMMIT_METHOD = "commit";
 	
-	protected ConcurrentHashMap<String, IPublishedData> keyToData = new ConcurrentHashMap<String, IPublishedData>();	
+	protected final ConcurrentHashMap<String, IPublishedData> keyToData = new ConcurrentHashMap<String, IPublishedData>();	
 	//Services that create producers to data id is service ID
-	protected ConcurrentHashMap<Integer, IDataProducerService> idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
+	protected final ConcurrentHashMap<Integer, IDataProducerService> idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
+	
+	protected final HashMap<String, List<ReferenceLink>> m_keyToReferensLinks = new HashMap<String, List<ReferenceLink>>();
 	
 	private IExecutor executor;
 	
@@ -87,7 +91,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	@Override
 	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
 	{
-		String val = inQuery.get( QUERY_KEY );
+		String val = inQuery.get( FIELD_QUERY_KEY );
 		
 		if( val != null && val == PRODUCER_SERVICES )
 		{
@@ -159,7 +163,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	 * @param inProducer
 	 * @return
 	 */
-	public IPublishedData createEmptyData( Status inStatus, IDataProducer inProducer )
+	protected IPublishedData createEmptyData( Status inStatus, IDataProducer inProducer )
 	{
 		if( dataFactory == null )
 		{
@@ -208,4 +212,36 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		System.err.println( inMessage );
 	}
 	
+	/**
+	 * @param inKey
+	 * Not synchronized 
+	 */
+	protected List<ReferenceLink> getReferensList( String inKey )
+	{
+		List<ReferenceLink> links = m_keyToReferensLinks.get( inKey );
+		if( links == null )
+		{
+			links = new ArrayList<ReferenceLink>();
+			m_keyToReferensLinks.put( inKey, links );
+		}
+		return links;
+	}
+	
+	/**
+	 * @param inKey
+	 * NOt Synchronized
+	 */
+	protected void removeReferenceLinks( String inKey )
+	{
+		List<ReferenceLink> links = m_keyToReferensLinks.get( inKey );
+		if( links != null )
+		{
+			for( ReferenceLink link : links )
+			{
+				link.dispose();
+			}
+		}
+		
+		m_keyToReferensLinks.remove( inKey );
+	}
 }

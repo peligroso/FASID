@@ -8,6 +8,14 @@ import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 
+/**
+ * @author Pontus Jörgne
+ * Jan 2, 2012
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ * 
+ * NonBlockngSTM is experimental ant not complete. It exhibits strange behavior and does not support DataTypeRef
+ * Use BlockingSTM
+ */
 public class NonBlockingSTM extends STM
 {
 	

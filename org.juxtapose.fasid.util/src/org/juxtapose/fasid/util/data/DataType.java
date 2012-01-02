@@ -1,5 +1,11 @@
 package org.juxtapose.fasid.util.data;
 
+/**
+ * @author Pontus Jörgne
+ * Dec 30, 2011
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ * @param <T>
+ */
 public abstract class DataType<T> {
 	
 	final T m_value;

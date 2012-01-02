@@ -9,30 +9,33 @@ import java.util.HashMap;
  */
 public class DataKey implements IDataKey
 {
-	private final HashMap<Integer, String> m_keyMap;
-	private final Integer m_producerServiceKey;
-	private final String m_key;
+	private final HashMap<Integer, String> keyMap;
+	private final Integer producerServiceKey;
+	private final String type;
+	private final String key;
 	
 	/**
 	 * @param inProducerServiceKey
 	 * @param inMap
 	 * @param inKey
+	 * DataKey are created via ProducerUtil
 	 */
-	public DataKey( Integer inProducerServiceKey, HashMap<Integer, String> inMap, String inKey )
+	protected DataKey( Integer inProducerServiceKey, String inType, HashMap<Integer, String> inMap, String inKey )
 	{
-		m_producerServiceKey = inProducerServiceKey;
-		m_keyMap = inMap;
-		m_key = inKey;
+		producerServiceKey = inProducerServiceKey;
+		keyMap = inMap;
+		key = inKey;
+		type = inType;
 	}
 	
 	public String toString()
 	{
-		return m_key.toString();
+		return key.toString();
 	}
 	
 	public String getKey()
 	{
-		return m_key;
+		return key;
 	}
 	
 	
@@ -42,7 +45,7 @@ public class DataKey implements IDataKey
 	 */
 	public String getValue( Integer inKey )
 	{
-		return m_keyMap.get( inKey );
+		return keyMap.get( inKey );
 	}
 	
 	
@@ -55,7 +58,7 @@ public class DataKey implements IDataKey
 		if( ! (inKey instanceof IDataKey) )
 			return false;
 		
-		return m_key.equals( ((IDataKey)inKey ).getKey() );
+		return key.equals( ((IDataKey)inKey ).getKey() );
 	}
 	
 	/* (non-Javadoc)
@@ -63,12 +66,17 @@ public class DataKey implements IDataKey
 	 */
 	public int hashCode()
 	{
-		return m_key.hashCode();
+		return key.hashCode();
 	}
 
 	@Override
 	public Integer getService()
 	{
-		return m_producerServiceKey;
+		return producerServiceKey;
+	}
+	
+	public String getType()
+	{
+		return type;
 	}
 }

@@ -38,10 +38,10 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 		
 		else if( type.equals( PriceEngineDataConstants.STATE_TYPE_PRICE ))
 		{
-			String ccy1 = inQuery.get( FXDataConstants.CCY1 );
-			String ccy2 = inQuery.get( FXDataConstants.CCY2 );
+			String ccy1 = inQuery.get( FXDataConstants.FIELD_CCY1 );
+			String ccy2 = inQuery.get( FXDataConstants.FIELD_CCY2 );
 		
-			return ProducerUtil.createDataKey( getServiceId(), new Integer[]{FXDataConstants.CCY1, FXDataConstants.CCY2},new String[]{ccy1, ccy2} );
+			return ProducerUtil.createDataKey( getServiceId(), PriceEngineDataConstants.STATE_TYPE_PRICE, new Integer[]{FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2},new String[]{ccy1, ccy2} );
 		}
 		return null;
 	}
@@ -52,13 +52,15 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 	@Override
 	public IDataProducer getDataProducer(IDataKey inDataKey)
 	{
-		if( inDataKey == PriceEngineDataConstants.CCY_MODEL_KEY )
+		String type = inDataKey.getType();
+		
+		if( type == PriceEngineDataConstants.STATE_TYPE_CCYMODEL )
 		{
 			return new CcyModelProducer( stm );
 		}
 		
-		String ccy1 = inDataKey.getValue( FXDataConstants.CCY1 );
-		String ccy2 = inDataKey.getValue( FXDataConstants.CCY2 );
+		String ccy1 = inDataKey.getValue( FXDataConstants.FIELD_CCY1 );
+		String ccy2 = inDataKey.getValue( FXDataConstants.FIELD_CCY2 );
 		
 		return new SpotPriceProducer(inDataKey.getKey(), ccy1, ccy2, stm);
 	}

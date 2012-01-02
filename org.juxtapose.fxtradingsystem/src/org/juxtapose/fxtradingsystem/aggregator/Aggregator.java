@@ -19,17 +19,18 @@ public class Aggregator extends DataProducerService implements IAggregator, IDat
 	@Override
 	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
 	{
-		String ccy1 = inQuery.get( FXDataConstants.CCY1 );
-		String ccy2 = inQuery.get( FXDataConstants.CCY2 );
+		String ccy1 = inQuery.get( FXDataConstants.FIELD_CCY1 );
+		String ccy2 = inQuery.get( FXDataConstants.FIELD_CCY2 );
 		
-		return ProducerUtil.createDataKey( getServiceId(), new Integer[]{FXDataConstants.CCY1, FXDataConstants.CCY2},new String[]{ccy1, ccy2} );
+		return null;
+//		return ProducerUtil.createDataKey( getServiceId(), new Integer[]{FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2},new String[]{ccy1, ccy2} );
 	}
 
 	@Override
 	public IDataProducer getDataProducer(IDataKey inDataKey)
 	{
-		String ccy1 = inDataKey.getValue( FXDataConstants.CCY1 );
-		String ccy2 = inDataKey.getValue( FXDataConstants.CCY2 );
+		String ccy1 = inDataKey.getValue( FXDataConstants.FIELD_CCY1 );
+		String ccy2 = inDataKey.getValue( FXDataConstants.FIELD_CCY2 );
 		
 		return new SpotPriceProducer(inDataKey.getKey(), ccy1, ccy2, stm);
 	}

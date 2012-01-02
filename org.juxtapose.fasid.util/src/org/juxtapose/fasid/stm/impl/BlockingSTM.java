@@ -1,5 +1,6 @@
 package org.juxtapose.fasid.stm.impl;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,6 +12,7 @@ import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
+import org.juxtapose.fasid.util.data.DataTypeRef;
 
 import com.trifork.clj_ds.IPersistentMap;
 
@@ -82,6 +84,24 @@ public class BlockingSTM extends STM
 		inTransaction.execute();
 		IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
 		Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
+		
+		Map< Integer, DataTypeRef > dataReferences = inTransaction.getReferences();
+		
+		List<ReferenceLink> refList = null;
+		
+		if( !dataReferences.isEmpty() )
+			refList = getReferensList( dataKey );
+		
+		for( Integer refKey : dataReferences.keySet() )
+		{
+			DataTypeRef ref = dataReferences.get( refKey );
+			ReferenceLink refLink = new ReferenceLink( dataKey, this, refKey, ref );
+			
+			refList.add( refLink );
+			
+			inst = inst.assoc(refKey, refLink.getRef());
+			delta.put( refKey, refLink.getRef());
+		}
 		
 		IPublishedData newData = existingData.setUpdatedData( inst, delta );
 		
@@ -157,7 +177,7 @@ public class BlockingSTM extends STM
 		
 		if( existingData == null )
 		{
-			System.err.print( "Key: "+inDataKey+", Data has already been removed which is unconditional since an existing subscriber is requesting to unsubscribe"  );
+			logError( "Key: "+inDataKey+", Data has already been removed which is unconditional since an existing subscriber is requesting to unsubscribe"  );
 			return;
 		}
 		else
@@ -171,6 +191,7 @@ public class BlockingSTM extends STM
 			{
 				keyToData.remove( inDataKey.getKey() );
 				producer = existingData.getProducer();
+				removeReferenceLinks( inDataKey.getKey() );
 			}
 		}
 		

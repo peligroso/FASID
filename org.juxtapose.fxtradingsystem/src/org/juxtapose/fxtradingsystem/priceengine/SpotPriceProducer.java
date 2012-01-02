@@ -73,10 +73,10 @@ public class SpotPriceProducer implements IDataProducer
 						public void execute()
 						{
 							if( first )
-								addValue(DataConstants.DATA_STATUS, new DataTypeString(Status.OK.toString()) );
-							addValue(FXDataConstants.CCY1, new DataTypeString(ccy1) );
-							addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
-							addValue(FXDataConstants.SEQUENCE, new DataTypeLong(seq) );
+								addValue(DataConstants.FIELD_DATA_STATUS, new DataTypeString(Status.OK.toString()) );
+							addValue(FXDataConstants.FIELD_CCY1, new DataTypeString(ccy1) );
+							addValue(FXDataConstants.FIELD_CCY2, new DataTypeString(ccy2) );
+							addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
 							
 							addPriceUpdate( rand, this );
 						}
@@ -98,9 +98,9 @@ public class SpotPriceProducer implements IDataProducer
 		
 		final DataTypeBigDecimal spread = new DataTypeBigDecimal( ask.get().subtract( bid.get() ) );
 		
-		inTransaction.addValue(FXDataConstants.BID, bid );
-		inTransaction.addValue(FXDataConstants.ASK, ask );
-		inTransaction.addValue(FXDataConstants.SPREAD, spread );
+		inTransaction.addValue(FXDataConstants.FIELD_BID, bid );
+		inTransaction.addValue(FXDataConstants.FIELD_ASK, ask );
+		inTransaction.addValue(FXDataConstants.FIELD_SPREAD, spread );
 	}
 
 
