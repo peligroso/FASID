@@ -10,6 +10,7 @@ import org.juxtapose.fasid.stm.osgi.DataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataType;
+import org.juxtapose.fasid.util.producerservices.DataInitializer;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
 
@@ -20,6 +21,15 @@ import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
  */
 public class PriceEngine extends DataProducerService implements IPriceEngine, IDataProducerService, IDataSubscriber
 {
+
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.osgi.DataProducerService#createDataInitializer()
+	 */
+	public DataInitializer createDataInitializer( )
+	{
+		DataInitializer initializer = new DataInitializer( stm, this, PriceEngineKeyConstants.CCY_MODEL_KEY );
+		return initializer;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.producer.IDataProducerService#getDataKey(java.util.HashMap)
@@ -34,7 +44,7 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 			return null;
 		}
 		if( type.equals( PriceEngineDataConstants.STATE_TYPE_CCYMODEL ))
-			return PriceEngineDataConstants.CCY_MODEL_KEY;
+			return PriceEngineKeyConstants.CCY_MODEL_KEY;
 		
 		else if( type.equals( PriceEngineDataConstants.STATE_TYPE_PRICE ))
 		{
@@ -48,12 +58,24 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.producer.IDataProducerService#getDataProducer(org.juxtapose.fasid.producer.IDataKey)
+	 * May return null on invalid key
 	 */
 	@Override
 	public IDataProducer getDataProducer(IDataKey inDataKey)
 	{
 		String type = inDataKey.getType();
 		
+		if( type == PriceEngineDataConstants.STATE_TYPE_CCY )
+		{
+			String ccy = inDataKey.getSingleValue();
+			assert( ccy != null && ccy.length() == 3 ) : "Error in ccy key, ccy value = "+ccy;
+			if( ccy == null )
+			{
+				stm.logError( "No ccy defined in ccy key" );
+				return null;
+			}
+			return new CcyProducer( stm, inDataKey, ccy );
+		}
 		if( type == PriceEngineDataConstants.STATE_TYPE_CCYMODEL )
 		{
 			return new CcyModelProducer( stm );
@@ -62,7 +84,7 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 		String ccy1 = inDataKey.getValue( FXDataConstants.FIELD_CCY1 );
 		String ccy2 = inDataKey.getValue( FXDataConstants.FIELD_CCY2 );
 		
-		return new SpotPriceProducer(inDataKey.getKey(), ccy1, ccy2, stm);
+		return new SpotPriceProducer(inDataKey, ccy1, ccy2, stm);
 	}
 
 	/* (non-Javadoc)
@@ -80,6 +102,14 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 		{
 			stm.logInfo( "OrderService is not registered");
 		}
-		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.stm.osgi.DataProducerService#getServiceId()
+	 */
+	@Override
+	public Integer getServiceId()
+	{
+		return FXProducerServiceConstants.PRICE_ENGINE;
 	}
 }

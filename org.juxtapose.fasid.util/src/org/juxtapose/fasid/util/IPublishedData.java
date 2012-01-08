@@ -18,7 +18,9 @@ public interface IPublishedData {
 	public IPublishedData removeSubscriber(IDataSubscriber inSubscriber);
 	public boolean hasSubscribers();
 	public IPersistentMap<Integer, DataType<?>> getDataMap();
-	public IPublishedData setUpdatedData(IPersistentMap<Integer, DataType<?>> stateInstruction,Map<Integer, DataType<?>> deltaState);
+	public IPublishedData setUpdatedData(IPersistentMap<Integer, DataType<?>> stateInstruction,Map<Integer, DataType<?>> deltaState, Status inStatus);
 	public void updateSubscribers(String dataKey);
 	public IPublishedData putDataValue( Integer inKey, DataType<?> inValue )throws Exception;
+	public Status getStatus();
+	public long getSequenceID();
 }

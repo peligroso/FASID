@@ -2,6 +2,8 @@ package org.juxtapose.fasid.producer;
 
 import java.util.HashMap;
 
+import org.juxtapose.fasid.util.DataConstants;
+
 /**
  * @author Pontus Jörgne
  * 7 aug 2011
@@ -13,6 +15,7 @@ public class DataKey implements IDataKey
 	private final Integer producerServiceKey;
 	private final String type;
 	private final String key;
+	private final String singleValue;
 	
 	/**
 	 * @param inProducerServiceKey
@@ -26,6 +29,24 @@ public class DataKey implements IDataKey
 		keyMap = inMap;
 		key = inKey;
 		type = inType;
+		singleValue = null;
+	}
+	
+	/**
+	 * @param inProducerServiceKey
+	 * @param inType
+	 * @param inSingleValue
+	 * @param inKey
+	 */
+	protected DataKey( Integer inProducerServiceKey, String inType, String inSingleValue, String inKey )
+	{
+		producerServiceKey = inProducerServiceKey;
+		HashMap<Integer, String> map = new HashMap<Integer, String>();
+		map.put( DataConstants.FIELD_SINGLE_VALUE_DATA_KEY, inSingleValue );
+		keyMap = map;
+		key = inKey;
+		type = inType;
+		singleValue = inSingleValue;
 	}
 	
 	public String toString()
@@ -78,5 +99,10 @@ public class DataKey implements IDataKey
 	public String getType()
 	{
 		return type;
+	}
+	
+	public String getSingleValue()
+	{
+		return singleValue;
 	}
 }

@@ -3,7 +3,8 @@ package org.juxtapose.fxtradingsystem.priceengine;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.DataProducer;
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
@@ -18,12 +19,10 @@ import org.juxtapose.fxtradingsystem.FXDataConstants;
  * 6 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class SpotPriceProducer implements IDataProducer
+public class SpotPriceProducer extends DataProducer
 {
 	final String ccy1;
 	final String ccy2;
-	final ISTM stm;
-	final String key;
 	
 	/**
 	 * @param inKey
@@ -31,12 +30,11 @@ public class SpotPriceProducer implements IDataProducer
 	 * @param inCcy2
 	 * @param inSTM
 	 */
-	public SpotPriceProducer( final String inKey, final String inCcy1, final String inCcy2, final ISTM inSTM )
+	public SpotPriceProducer( IDataKey inKey, String inCcy1, String inCcy2, ISTM inSTM )
 	{
+		super( inKey, inSTM );
 		ccy1 = inCcy1;
 		ccy2 = inCcy2;
-		stm = inSTM;
-		key = inKey;
 	}
 	
 	public void start()
@@ -61,22 +59,21 @@ public class SpotPriceProducer implements IDataProducer
 		for( int i = 0; i < 20; i++ )
 		{
 			final boolean first = i == 0;
-			final long seq = i;
 			stm.execute( new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					stm.commit( new DataTransaction( key )
+					stm.commit( new DataTransaction( dataKey.getKey() )
 					{
 						@Override
 						public void execute()
 						{
-							if( first )
-								addValue(DataConstants.FIELD_DATA_STATUS, new DataTypeString(Status.OK.toString()) );
-							addValue(FXDataConstants.FIELD_CCY1, new DataTypeString(ccy1) );
-							addValue(FXDataConstants.FIELD_CCY2, new DataTypeString(ccy2) );
-							addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
+							if ( first )
+								setStatus( Status.OK );
+							
+							addValue( FXDataConstants.FIELD_CCY1, new DataTypeString( ccy1 ) );
+							addValue( FXDataConstants.FIELD_CCY2, new DataTypeString( ccy2 ) );
 							
 							addPriceUpdate( rand, this );
 						}

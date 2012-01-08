@@ -5,14 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.DataProducer;
+import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
 import com.trifork.clj_ds.IPersistentMap;
-import com.trifork.clj_ds.PersistentHashMap;
 
 
 /**
@@ -35,9 +34,12 @@ public abstract class Transaction
 	
 	private Map<Integer, DataType<?>> m_deltaState = new HashMap<Integer, DataType<?>>();
 	
-	private Map<Integer, DataTypeRef> dataReferences = new HashMap<Integer, DataTypeRef>();
+	private Map<Integer, DataTypeRef> addedDataReferences = new HashMap<Integer, DataTypeRef>();
+	private List<Integer> removedDataReferences = new ArrayList<Integer>();
 	
-	private IDataProducer m_producer = null;
+	private DataProducer m_producer = null;
+	
+	private Status status;
 	
 	/**
 	 * @param inDataKey
@@ -51,7 +53,7 @@ public abstract class Transaction
 	 * @param inDataKey
 	 * @param inProducer
 	 */
-	protected Transaction( String inDataKey, IDataProducer inProducer ) 
+	protected Transaction( String inDataKey, DataProducer inProducer ) 
 	{
 		m_dataKey = inDataKey;
 		m_producer = inProducer;
@@ -60,19 +62,31 @@ public abstract class Transaction
 	/**
 	 * @param inMap
 	 */
-	protected void putInitDataState( IPersistentMap<Integer, DataType<?>> inMap )
+	protected void putInitDataState( IPersistentMap<Integer, DataType<?>> inMap, Status inStatus )
 	{
 		m_stateInstruction = inMap;
+		status = inStatus;
 	}
 	
 	
 	public abstract void execute();
 	
+	private boolean isSTMClass( String inClassName )
+	{
+		return inClassName.contains("STM");
+		
+//		Why does getClass().getName() return "java.lang.Class" ??
+//		return STM.class.getClass().getName().equals( inClassName ) ||
+//		BlockingSTM.class.getClass().getName().equals( inClassName ) ||
+//		NonBlockingSTM.class.getClass().getName().equals( inClassName );
+	}
+	
 	private boolean validateStack()
 	{
-		for (StackTraceElement element : Thread.currentThread().getStackTrace() )
+		StackTraceElement stEl[] = Thread.currentThread().getStackTrace();
+		for (StackTraceElement element : stEl )
 		{
-			if( element.getClassName().equals( STM.class.getClass().getName() ) &&
+			if( isSTMClass( element.getClassName() ) &&
 					element.getMethodName().equals( STM.COMMIT_METHOD ) )
 				return true;
 		}
@@ -92,6 +106,16 @@ public abstract class Transaction
 		m_deltaState.put(inKey, inData);
 	}
 	
+	public void updateReferenceValue( Integer inKey, DataTypeRef inDataTypeRef )
+	{
+		assert validateStack() : "Transaction.updateReferenceValue was not from called from within a STM commit as required";
+		assert m_stateInstruction.valAt( inKey) != null : "Tried to update non existing Reference";
+		assert m_stateInstruction.valAt( inKey ) instanceof DataTypeRef : "Tried to update Reference that was not of reference type";
+		
+		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataTypeRef );
+		m_deltaState.put(inKey, inDataTypeRef);
+	}
+	
 	/**
 	 * @param inKey
 	 * @param inDataRef
@@ -100,7 +124,7 @@ public abstract class Transaction
 	{
 		assert validateStack() : "Transaction.addValue was not from called from within a STM commit as required";
 		
-		dataReferences.put( inKey, inDataRef );
+		addedDataReferences.put( inKey, inDataRef );
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataRef );
 		m_deltaState.put(inKey, inDataRef);
@@ -113,9 +137,16 @@ public abstract class Transaction
 	public void removeValue( Integer inKey )throws Exception
 	{
 		assert validateStack() : "Transaction.removeValue was not from called from within a STM commit as required";
+		assert m_deltaState.containsKey( inKey ) : "Transaction may not add and remove the same field value: "+inKey;
+		
 		m_stateInstruction = m_stateInstruction.without( inKey );
 		
-		m_deltaState.put(inKey, new DataTypeNull( null ));
+		DataType<?> removedData = m_deltaState.put(inKey, new DataTypeNull( null ));
+		
+		if( removedData instanceof DataTypeRef )
+		{
+			removedDataReferences.add( inKey );
+		}
 	}
 	
 	/**
@@ -142,7 +173,7 @@ public abstract class Transaction
 		return m_dataKey;
 	}
 	
-	public IDataProducer producedBy()
+	public DataProducer producedBy()
 	{
 		return m_producer;
 	}
@@ -150,8 +181,26 @@ public abstract class Transaction
 	/**
 	 * @return
 	 */
-	public Map<Integer, DataTypeRef> getReferences()
+	public Map<Integer, DataTypeRef> getAddedReferences()
 	{
-		return dataReferences;
+		return addedDataReferences;
+	}
+	
+	/**
+	 * @return
+	 */
+	public List<Integer> getRemovedReferences()
+	{
+		return removedDataReferences;
+	}
+	
+	public void setStatus( Status inStatus )
+	{
+		status = inStatus;
+	}
+	
+	public Status getStatus()
+	{
+		return status;
 	}
 }

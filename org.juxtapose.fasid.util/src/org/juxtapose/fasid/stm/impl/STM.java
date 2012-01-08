@@ -1,12 +1,11 @@
 package org.juxtapose.fasid.stm.impl;
 
 import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICES;
-import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICE_KEY;
 import static org.juxtapose.fasid.util.DataConstants.FIELD_QUERY_KEY;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,7 +17,9 @@ import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
+import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
+import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fasid.util.producerservices.ProducerServiceConstants;
 
@@ -39,8 +40,6 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	//Services that create producers to data id is service ID
 	protected final ConcurrentHashMap<Integer, IDataProducerService> idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
 	
-	protected final HashMap<String, List<ReferenceLink>> m_keyToReferensLinks = new HashMap<String, List<ReferenceLink>>();
-	
 	private IExecutor executor;
 	
 	private IPublishedDataFactory dataFactory;
@@ -51,7 +50,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	public void init( IExecutor inExecutor )
 	{
 		executor = inExecutor;
-		keyToData.put( PRODUCER_SERVICE_KEY.getKey(), createEmptyData(Status.OK, this, this));
+		keyToData.put( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), createEmptyData(Status.OK, this, this));
 		registerProducer( this, Status.OK );
 	}
 	
@@ -64,7 +63,23 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		Integer id = inProducerService.getServiceId();
 		idToProducerService.put( id, inProducerService );
 		
-		commit( new DataTransaction( PRODUCER_SERVICE_KEY.getKey() )
+		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey() )
+		{
+			@Override
+			public void execute()
+			{
+				addValue( inProducerService.getServiceId(), new DataTypeString( initState.toString() ) );
+			}
+		});
+	}
+	
+	/**
+	 * @param inProducerService
+	 * @param initState
+	 */
+	public void updateProducerStatus( final IDataProducerService inProducerService, final Status initState )
+	{
+		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey() )
 		{
 			@Override
 			public void execute()
@@ -95,7 +110,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		
 		if( val != null && val == PRODUCER_SERVICES )
 		{
-			return PRODUCER_SERVICE_KEY;
+			return KeyConstants.PRODUCER_SERVICE_KEY;
 		}
 		return null;
 	}
@@ -212,36 +227,9 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		System.err.println( inMessage );
 	}
 	
-	/**
-	 * @param inKey
-	 * Not synchronized 
-	 */
-	protected List<ReferenceLink> getReferensList( String inKey )
-	{
-		List<ReferenceLink> links = m_keyToReferensLinks.get( inKey );
-		if( links == null )
-		{
-			links = new ArrayList<ReferenceLink>();
-			m_keyToReferensLinks.put( inKey, links );
-		}
-		return links;
-	}
-	
-	/**
-	 * @param inKey
-	 * NOt Synchronized
-	 */
-	protected void removeReferenceLinks( String inKey )
-	{
-		List<ReferenceLink> links = m_keyToReferensLinks.get( inKey );
-		if( links != null )
-		{
-			for( ReferenceLink link : links )
-			{
-				link.dispose();
-			}
-		}
-		
-		m_keyToReferensLinks.remove( inKey );
-	}
+	public void initDataReferences( Map< Integer, DataTypeRef > inDataReferences ){}
+	public void disposeReferenceLink( Integer inField ){}
+	public void disposeReferenceLinks( List< Integer > inReferenceFields ){}
+	public void disposeAllReferenceLinks( ){}
+	public void referencedDataUpdated( Integer inFieldKey, IPublishedData inData ){}
 }

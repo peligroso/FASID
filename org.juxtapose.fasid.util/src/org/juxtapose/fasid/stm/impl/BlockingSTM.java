@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -16,8 +16,15 @@ import org.juxtapose.fasid.util.data.DataTypeRef;
 
 import com.trifork.clj_ds.IPersistentMap;
 
+/**
+ * @author Pontus Jörgne
+ * Jan 6, 2012
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ * STM implementation that uses locking as synchronization method around transactions
+ */
 public class BlockingSTM extends STM
 {
+	//Fair locking implies that first come, first serve. Fair locking = false may lead to unwanted behavior on highly contended data 
 	public final boolean FAIR_LOCKING = true; 
 	private final ConcurrentHashMap<String, ReentrantLock> m_keyToLock = new ConcurrentHashMap<String, ReentrantLock>();
 	
@@ -80,30 +87,34 @@ public class BlockingSTM extends STM
 			return;
 		}
 		
-		inTransaction.putInitDataState( existingData.getDataMap() );
+		inTransaction.putInitDataState( existingData.getDataMap(), existingData.getStatus() );
 		inTransaction.execute();
 		IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
 		Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
 		
-		Map< Integer, DataTypeRef > dataReferences = inTransaction.getReferences();
-		
-		List<ReferenceLink> refList = null;
-		
+		//Init reference links
+		Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
 		if( !dataReferences.isEmpty() )
-			refList = getReferensList( dataKey );
-		
-		for( Integer refKey : dataReferences.keySet() )
 		{
-			DataTypeRef ref = dataReferences.get( refKey );
-			ReferenceLink refLink = new ReferenceLink( dataKey, this, refKey, ref );
-			
-			refList.add( refLink );
-			
-			inst = inst.assoc(refKey, refLink.getRef());
-			delta.put( refKey, refLink.getRef());
+			IDataProducer producer = existingData.getProducer();
+			if( producer == null )
+				logError( "Tried to add reference to data with null producer" );
+			else
+				producer.initDataReferences( dataReferences );
 		}
 		
-		IPublishedData newData = existingData.setUpdatedData( inst, delta );
+		
+		//Dispose reference links
+		List< Integer > removedReferences = inTransaction.getRemovedReferences();
+		if( !removedReferences.isEmpty() )
+		{
+			IDataProducer producer = existingData.getProducer();
+			if( producer == null )
+				logError( "Tried to remove reference from data with null producer" );
+			else
+				producer.disposeReferenceLinks( removedReferences );
+		}
+		IPublishedData newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus() );
 		
 		keyToData.put( dataKey, newData );
 		
@@ -136,6 +147,8 @@ public class BlockingSTM extends STM
 		{
 			//First subscriber
 			producer = producerService.getDataProducer( inDataKey );
+			
+			//REVISIT Potentially we should not notify subscribers for certain newDatas and just wait for the initial update instead.
 			newData = createEmptyData( Status.ON_REQUEST, producer, inSubscriber);
 			
 			keyToData.put( inDataKey.getKey(), newData );
@@ -191,7 +204,6 @@ public class BlockingSTM extends STM
 			{
 				keyToData.remove( inDataKey.getKey() );
 				producer = existingData.getProducer();
-				removeReferenceLinks( inDataKey.getKey() );
 			}
 		}
 		

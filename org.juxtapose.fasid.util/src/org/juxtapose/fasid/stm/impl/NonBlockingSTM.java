@@ -135,10 +135,10 @@ public class NonBlockingSTM extends STM
 					return;
 				}
 				
-				inTransaction.putInitDataState( existingData.getDataMap() );
+				inTransaction.putInitDataState( existingData.getDataMap(), existingData.getStatus() );
 				inTransaction.execute();
 
-				newData = existingData.setUpdatedData( inTransaction.getStateInstruction(), inTransaction.getDeltaState() );
+				newData = existingData.setUpdatedData( inTransaction.getStateInstruction(), inTransaction.getDeltaState(), inTransaction.getStatus() );
 
 			}
 			while( !keyToData.replace( dataKey, existingData, newData ) );

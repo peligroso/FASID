@@ -1,5 +1,6 @@
 package org.juxtapose.fasid.stm.impl;
 
+import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
@@ -18,7 +19,7 @@ public class ReferenceLink implements IDataSubscriber
 	private final Integer hashKey;
 	private DataTypeRef ref;
 	private final ISTM stm;
-	private final String parentKey;
+	private final DataProducer parentProducer;
 	
 	private boolean firstUpdate = true;
 	
@@ -28,12 +29,12 @@ public class ReferenceLink implements IDataSubscriber
 	 * @param inHashKey
 	 * @param inRef
 	 */
-	public ReferenceLink( String inParentKey, ISTM inSTM, Integer inHashKey, DataTypeRef inRef )
+	public ReferenceLink( DataProducer inProducer, ISTM inSTM, Integer inHashKey, DataTypeRef inRef )
 	{
 		stm = inSTM;
 		hashKey = inHashKey;
 		ref = inRef;
-		parentKey = inParentKey;
+		parentProducer = inProducer;
 		stm.subscribeToData( inRef.get(), this );
 	}
 	
@@ -48,16 +49,8 @@ public class ReferenceLink implements IDataSubscriber
 		}
 		else
 		{
-			//Update parent via transaction
-			stm.commit( new DataTransaction( parentKey )
-			{
-				@Override
-				public void execute()
-				{
-					DataTypeRef newRef = new DataTypeRef( ref.get(), inData );
-					addValue(hashKey, newRef);
-				}
-			});
+			//Notify producer
+			parentProducer.referencedDataUpdated( hashKey, inData );			
 		}
 	}
 	

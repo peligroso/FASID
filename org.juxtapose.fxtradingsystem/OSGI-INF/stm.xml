@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.juxtapose.fxtradingsystem">
-   <implementation class="org.juxtapose.fasid.stm.osgi.STMActivator"/>
+   <implementation class="org.juxtapose.fasid.stm.osgi.BSTMActivator"/>
    <service>
       <provide interface="org.juxtapose.fasid.stm.exp.ISTM"/>
    </service>
-   <property name="PROP_DATA_FACTORY_CLASS" type="String" value="org.juxtapose.fasid.stm.impl.PersistentDataFactory"/>
+   <property name="PROP_DATA_FACTORY_CLASS" type="String" value="org.juxtapose.fasid.stm.impl.PublishedDataFactory"/>
 </scr:component>

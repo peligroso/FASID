@@ -1,32 +1,33 @@
 package org.juxtapose.fxtradingsystem.priceengine;
 
-import org.juxtapose.fasid.producer.IDataProducer;
+import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.STATE_EUR;
+import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.STATE_USD;
+
+import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
-import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.*;
 
 /**
  * @author Pontus Jörgne
  * Dec 11, 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class CcyProducer implements IDataProducer
+public class CcyProducer extends DataProducer
 {
-	final ISTM stm;
 	final String ccy;
 	
 	/**
 	 * @param inSTM
 	 * @param inCcy
 	 */
-	public CcyProducer(ISTM inSTM, String inCcy )
+	public CcyProducer(ISTM inSTM, IDataKey inKey, String inCcy )
 	{
-		stm = inSTM;
+		super( inKey, inSTM );
 		ccy = inCcy;
 	}
 	
@@ -38,22 +39,18 @@ public class CcyProducer implements IDataProducer
 			@Override
 			public void run()
 			{
-				stm.commit( new DataTransaction( PriceEngineDataConstants.CCY_MODEL_KEY.getKey() )
+				stm.commit( new DataTransaction( dataKey.getKey() )
 				{
 					@Override
 					public void execute()
 					{
-						addValue(DataConstants.FIELD_DATA_STATUS, new DataTypeString(Status.OK.toString()) );
+						setStatus( Status.OK );
 						addValue(FXDataConstants.FIELD_PIP, new DataTypeLong(10000L) );
 						addValue(FXDataConstants.FIELD_DECIMALS, new DataTypeLong(5L) );
-						if( ccy.equals(EUR))
-							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(USD) );
+						if( ccy.equals(STATE_EUR))
+							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_USD) );
 						else
-							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(EUR) );
-//						addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
-//						addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
-//						
-//						addPriceUpdate( rand, this );
+							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_EUR) );
 					}
 				});
 			}

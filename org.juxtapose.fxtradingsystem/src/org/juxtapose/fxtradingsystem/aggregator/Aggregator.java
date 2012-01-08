@@ -32,7 +32,7 @@ public class Aggregator extends DataProducerService implements IAggregator, IDat
 		String ccy1 = inDataKey.getValue( FXDataConstants.FIELD_CCY1 );
 		String ccy2 = inDataKey.getValue( FXDataConstants.FIELD_CCY2 );
 		
-		return new SpotPriceProducer(inDataKey.getKey(), ccy1, ccy2, stm);
+		return new SpotPriceProducer(inDataKey, ccy1, ccy2, stm);
 	}
 
 	@Override
@@ -48,5 +48,11 @@ public class Aggregator extends DataProducerService implements IAggregator, IDat
 			System.out.println( "OrderService is not registered");
 		}
 		
+	}
+	
+	@Override
+	public Integer getServiceId()
+	{
+		return FXProducerServiceConstants.AGGREGATOR;
 	}
 }

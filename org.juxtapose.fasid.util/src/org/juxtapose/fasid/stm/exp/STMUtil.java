@@ -1,10 +1,6 @@
 package org.juxtapose.fasid.stm.exp;
 
-import static org.juxtapose.fasid.util.producerservices.ProducerServiceConstants.STM_SERVICE_KEY;
-
-import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
-import org.juxtapose.fasid.producer.ProducerUtil;
 import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.IPublishedData;
 
@@ -16,8 +12,6 @@ import org.juxtapose.fasid.util.IPublishedData;
 public class STMUtil {
 
 	public static String PRODUCER_SERVICES = "PRODUCER_SERVICES";
-	
-	public static IDataKey PRODUCER_SERVICE_KEY = ProducerUtil.createDataKey( STM_SERVICE_KEY, PRODUCER_SERVICES );
 	
 	/**
 	 * @param inData

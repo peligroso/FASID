@@ -1,5 +1,7 @@
 package org.juxtapose.fxtradingsystem.ordermanager;
 
+import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.*;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 
@@ -7,17 +9,15 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
+import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
-import org.juxtapose.fasid.util.data.DataTypeLong;
-import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
-import org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants;
+import org.juxtapose.fxtradingsystem.priceengine.PriceEngineUtil;
 
 public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataSubscriber
 {
@@ -40,16 +40,37 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	@Override
 	public void updateData( String inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
+		if( inKey == KeyConstants.PRODUCER_SERVICE_KEY.getKey() )
+		{
+			DataType<?> dataValue = inData.getValue( FXProducerServiceConstants.PRICE_ENGINE );
+			if( dataValue != null )
+			{
+				System.out.println( "Price engine is registered with status: "+dataValue);
+				
+				if( dataValue.get() == Status.OK.toString() )
+				{
+					HashMap<Integer, String> query = PriceEngineUtil.getPriceQuery( STATE_EUR, STATE_SEK );
+					IDataKey dataKey = stm.getDataKey( FXProducerServiceConstants.PRICE_ENGINE, query );
+					priceKey = dataKey.getKey();
+
+					stm.subscribeToData( dataKey, this );
+				}
+			}
+			else
+			{
+				System.out.println( "Price engine is not registered");
+			}
+		}
 		if( inKey.equals( priceKey ) )
 		{
-			DataTypeString status = (DataTypeString)inData.getValue( DataConstants.FIELD_DATA_STATUS );
-			if( Status.valueOf( status.get() ) == Status.OK )
+			Status status = inData.getStatus();
+			if( status == Status.OK )
 			{
 				DataTypeBigDecimal bid = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_BID );
 				DataTypeBigDecimal ask = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_ASK );
 				DataTypeBigDecimal spread = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_SPREAD );
 				
-				DataTypeLong sequence = (DataTypeLong)inData.getValue( FXDataConstants.FIELD_SEQUENCE );
+				long sequence = inData.getSequenceID();
 				
 				BigDecimal validateSpread = ask.get().subtract( bid.get() );
 				boolean valid = validateSpread.equals( spread.get() );
@@ -64,35 +85,18 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			}
 			else
 			{
-				DataType<?> seq = (DataTypeLong)inData.getValue( FXDataConstants.FIELD_SEQUENCE );
-				if( seq != null )
-					System.out.println( "PriceStatus is "+status+seq.get() );
-				else
-					System.out.println( "PriceStatus is "+status );
+				long sequence = inData.getSequenceID();
+				System.out.println( "PriceStatus is "+status+sequence );
 			}
 			return;
 		}
-		DataType<?> dataValue = inData.getValue( FXProducerServiceConstants.PRICE_ENGINE );
-		if( dataValue != null )
-		{
-			System.out.println( "Price engine is registered with status: "+dataValue);
-			
-			HashMap<Integer, String> query = new HashMap<Integer, String>();
-			query.put( PriceEngineDataConstants.TYPE, PriceEngineDataConstants.STATE_TYPE_PRICE);
-			query.put( FXDataConstants.FIELD_CCY1, "EUR");
-			query.put( FXDataConstants.FIELD_CCY2, "SEK");
-			
-			IDataKey dataKey = stm.getDataKey( FXProducerServiceConstants.PRICE_ENGINE, query);
-			priceKey = dataKey.getKey();
-			
-			stm.subscribeToData(dataKey, this);
-		}
-		else
-		{
-			System.out.println( "Price engine is not registered");
-		}
-
+		
 	}
-
+	
+	@Override
+	public Integer getServiceId()
+	{
+		return FXProducerServiceConstants.ORDER_MANAGER;
+	}
 
 }

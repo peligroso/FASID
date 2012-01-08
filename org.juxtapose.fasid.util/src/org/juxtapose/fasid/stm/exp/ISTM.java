@@ -3,8 +3,8 @@ package org.juxtapose.fasid.stm.exp;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.IDataSubscriber;

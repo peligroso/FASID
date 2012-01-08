@@ -2,9 +2,11 @@ package org.juxtapose.fasid.stm.osgi;
 
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.exp.ISTM;
-import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.IDataSubscriber;
+import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
+import org.juxtapose.fasid.util.producerservices.DataInitializer;
+import org.juxtapose.fasid.util.producerservices.IDataInitializerListener;
 import org.osgi.service.component.ComponentContext;
 
 /**
@@ -12,18 +14,15 @@ import org.osgi.service.component.ComponentContext;
  * 3 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public abstract class DataProducerService implements IDataProducerService, IDataSubscriber
+public abstract class DataProducerService implements IDataProducerService, IDataSubscriber, IDataInitializerListener
 {
 	protected ISTM stm;
-	private int ID;
+	
+	protected DataInitializer initializer;
 	
 	public void activate( ComponentContext inContext )
 	{
-		Object id = inContext.getProperties().get( "ID" );
-		if( id == null )
-			throw new NullPointerException("ID property is missing from data producer service");
-		
-		init( (Integer)id );
+		init();
 	}
 	
 	public void bindSTM( ISTM inSTM )
@@ -32,18 +31,34 @@ public abstract class DataProducerService implements IDataProducerService, IData
 	}
 	
 	
-	protected void init( int inID )
+	protected void init()
 	{
-		ID = inID;
+		initializer = createDataInitializer();
 		
+		if( initializer != null )
+		{
+			stm.registerProducer( this, Status.INITIALIZING );
+			initializer.init();
+		}
+		else
+		{
+			stm.registerProducer( this, Status.OK );
+			stm.subscribeToData( KeyConstants.PRODUCER_SERVICE_KEY, this);
+		}
+			
+	}
+	
+	public DataInitializer createDataInitializer( )
+	{
+		return null;
+	}
+	
+	public void dataInitialized()
+	{
 		stm.registerProducer( this, Status.OK );
-		
-		stm.subscribeToData(STMUtil.PRODUCER_SERVICE_KEY, this);
+		stm.subscribeToData( KeyConstants.PRODUCER_SERVICE_KEY, this);
 	}
 
 	@Override
-	public Integer getServiceId()
-	{
-		return ID;
-	}
+	public abstract Integer getServiceId();
 }

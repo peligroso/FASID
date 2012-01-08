@@ -1,6 +1,7 @@
 package org.juxtapose.fasid.producer;
 
 import java.util.HashMap;
+import static org.juxtapose.fasid.util.DataConstants.*;
 
 /**
  * @author Pontus Jörgne
@@ -9,7 +10,6 @@ import java.util.HashMap;
  */
 public class ProducerUtil
 {
-	public static Integer FIELD_SINGLE_VALUE_DATA_KEY = 1;
 	public static String AND = "&";
 	public static String EQUALS = "=";
 	public static String SERVICE_KEY_DELIM = ":";
@@ -54,18 +54,8 @@ public class ProducerUtil
 	 */
 	public static IDataKey createDataKey( Integer inServiceKey, String inType, String inSingleValue )
 	{
-		HashMap<Integer, String> map = new HashMap<Integer, String>();
-		map.put( FIELD_SINGLE_VALUE_DATA_KEY, inSingleValue );
 		String key = inServiceKey+SERVICE_KEY_DELIM+inType+SERVICE_KEY_DELIM+FIELD_SINGLE_VALUE_DATA_KEY+EQUALS+inSingleValue;
 		
-		return new DataKey( inServiceKey, inType, map, key ); 
-	}
-	
-	public static IDataKey createDataKey( Integer inServiceKey, String inType )
-	{
-		HashMap<Integer, String> map = new HashMap<Integer, String>();
-		String key = inServiceKey+SERVICE_KEY_DELIM+inType;
-		
-		return new DataKey( inServiceKey, inType, map, key ); 
+		return new DataKey( inServiceKey, inType, inSingleValue, key ); 
 	}
 }

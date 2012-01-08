@@ -4,12 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.juxtapose.fasid.producer.IDataProducer;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fasid.util.data.DataTypeString;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
@@ -21,7 +19,7 @@ import com.trifork.clj_ds.PersistentVector;
  * 17 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class PersistentDataFactory implements IPublishedDataFactory
+public class PublishedDataFactory implements IPublishedDataFactory
 {
 	/**
 	 * @param inStatus
@@ -30,11 +28,11 @@ public class PersistentDataFactory implements IPublishedDataFactory
 	 */
 	public IPublishedData createData( Status inStatus, IDataProducer inProducer )
 	{
-		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.FIELD_DATA_STATUS, new DataTypeString( inStatus.toString()) );
+		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create();
 		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( );
 		
-		return new PublishedData( dataMap, deltaMap, subscribers, inProducer );
+		return new PublishedData( dataMap, deltaMap, subscribers, inProducer, inStatus, 0l );
 	}
 	
 	/* (non-Javadoc)
@@ -42,10 +40,10 @@ public class PersistentDataFactory implements IPublishedDataFactory
 	 */
 	public IPublishedData createData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber )
 	{
-		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( DataConstants.FIELD_DATA_STATUS, new DataTypeString( inStatus.toString()) );
+		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( );
 		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( inSubscriber );
 		
-		return new PublishedData( dataMap, deltaMap, subscribers, inProducer );
+		return new PublishedData( dataMap, deltaMap, subscribers, inProducer, inStatus, 0l );
 	}
 }

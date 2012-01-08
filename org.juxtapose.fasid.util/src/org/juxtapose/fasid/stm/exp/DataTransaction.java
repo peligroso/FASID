@@ -1,6 +1,7 @@
 package org.juxtapose.fasid.stm.exp;
 
 import org.juxtapose.fasid.stm.impl.Transaction;
+import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
@@ -25,6 +26,11 @@ public abstract class DataTransaction extends Transaction
 	public void addReference( Integer inKey, DataTypeRef inDataRef )
 	{
 		super.addReference( inKey, inDataRef );
+	}
+	
+	public void setStatus( Status inStatus )
+	{
+		super.setStatus( inStatus );
 	}
 
 }

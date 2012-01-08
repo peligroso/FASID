@@ -1,13 +1,14 @@
 
 package org.juxtapose.fxtradingsystem.priceengine;
 
-import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeData;
+import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 
@@ -16,16 +17,14 @@ import org.juxtapose.fxtradingsystem.FXDataConstants;
  * 17 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class CcyModelProducer implements IDataProducer
+public class CcyModelProducer extends DataProducer
 {
-	final ISTM stm;
-	
 	/**
 	 * @param inSTM
 	 */
 	public CcyModelProducer( ISTM inSTM )
 	{
-		stm = inSTM;
+		super( PriceEngineKeyConstants.CCY_MODEL_KEY, inSTM);
 	}
 	
 	@Override
@@ -36,13 +35,14 @@ public class CcyModelProducer implements IDataProducer
 			@Override
 			public void run()
 			{
-				stm.commit( new DataTransaction( PriceEngineDataConstants.CCY_MODEL_KEY.getKey() )
+				stm.commit( new DataTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey() )
 				{
 					@Override
 					public void execute()
 					{
-						addValue(DataConstants.FIELD_DATA_STATUS, new DataTypeString(Status.OK.toString()) );
-//						addValue(FXDataConstants.CCY1, new DataTypeString(ccy1) );
+						setStatus( Status.OK );
+						addReference(PriceEngineDataConstants.FIELD_EUR, new DataTypeRef( PriceEngineKeyConstants.CCY_EUR_KEY ) );
+						addReference(PriceEngineDataConstants.FIELD_SEK, new DataTypeRef( PriceEngineKeyConstants.CCY_SEK_KEY ) );
 //						addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
 //						addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
 //						
