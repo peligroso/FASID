@@ -7,10 +7,8 @@ import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
-import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 
@@ -64,7 +62,7 @@ public class SpotPriceProducer extends DataProducer
 				@Override
 				public void run()
 				{
-					stm.commit( new DataTransaction( dataKey.getKey() )
+					stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this )
 					{
 						@Override
 						public void execute()

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.juxtapose.fasid.producer.DataProducer;
+import org.juxtapose.fasid.producer.IDataProducer;
+import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;
@@ -37,7 +39,7 @@ public abstract class Transaction
 	private Map<Integer, DataTypeRef> addedDataReferences = new HashMap<Integer, DataTypeRef>();
 	private List<Integer> removedDataReferences = new ArrayList<Integer>();
 	
-	private DataProducer m_producer = null;
+	private IDataProducer m_producer = null;
 	
 	private Status status;
 	
@@ -53,7 +55,7 @@ public abstract class Transaction
 	 * @param inDataKey
 	 * @param inProducer
 	 */
-	protected Transaction( String inDataKey, DataProducer inProducer ) 
+	protected Transaction( String inDataKey, IDataProducer inProducer ) 
 	{
 		m_dataKey = inDataKey;
 		m_producer = inProducer;
@@ -71,35 +73,13 @@ public abstract class Transaction
 	
 	public abstract void execute();
 	
-	private boolean isSTMClass( String inClassName )
-	{
-		return inClassName.contains("STM");
-		
-//		Why does getClass().getName() return "java.lang.Class" ??
-//		return STM.class.getClass().getName().equals( inClassName ) ||
-//		BlockingSTM.class.getClass().getName().equals( inClassName ) ||
-//		NonBlockingSTM.class.getClass().getName().equals( inClassName );
-	}
-	
-	private boolean validateStack()
-	{
-		StackTraceElement stEl[] = Thread.currentThread().getStackTrace();
-		for (StackTraceElement element : stEl )
-		{
-			if( isSTMClass( element.getClassName() ) &&
-					element.getMethodName().equals( STM.COMMIT_METHOD ) )
-				return true;
-		}
-		
-		return false;
-	}
 	/**
 	 * @param inKey
 	 * @param inData
 	 */
 	public void addValue( Integer inKey, DataType<?> inData )
 	{
-		assert validateStack() : "Transaction.addValue was not from called from within a STM commit as required";
+		assert STMUtil.validateTransactionStack() : "Transaction.addValue was not from called from within a STM commit as required";
 		assert !( inData instanceof DataTypeRef ) : "Reference values should be added via addReference method";
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inData );
@@ -108,7 +88,7 @@ public abstract class Transaction
 	
 	public void updateReferenceValue( Integer inKey, DataTypeRef inDataTypeRef )
 	{
-		assert validateStack() : "Transaction.updateReferenceValue was not from called from within a STM commit as required";
+		assert STMUtil.validateTransactionStack() : "Transaction.updateReferenceValue was not from called from within a STM commit as required";
 		assert m_stateInstruction.valAt( inKey) != null : "Tried to update non existing Reference";
 		assert m_stateInstruction.valAt( inKey ) instanceof DataTypeRef : "Tried to update Reference that was not of reference type";
 		
@@ -122,7 +102,7 @@ public abstract class Transaction
 	 */
 	public void addReference( Integer inKey, DataTypeRef inDataRef )
 	{
-		assert validateStack() : "Transaction.addValue was not from called from within a STM commit as required";
+		assert STMUtil.validateTransactionStack() : "Transaction.addValue was not from called from within a STM commit as required";
 		
 		addedDataReferences.put( inKey, inDataRef );
 		
@@ -136,7 +116,7 @@ public abstract class Transaction
 	 */
 	public void removeValue( Integer inKey )throws Exception
 	{
-		assert validateStack() : "Transaction.removeValue was not from called from within a STM commit as required";
+		assert STMUtil.validateTransactionStack() : "Transaction.removeValue was not from called from within a STM commit as required";
 		assert m_deltaState.containsKey( inKey ) : "Transaction may not add and remove the same field value: "+inKey;
 		
 		m_stateInstruction = m_stateInstruction.without( inKey );
@@ -173,7 +153,7 @@ public abstract class Transaction
 		return m_dataKey;
 	}
 	
-	public DataProducer producedBy()
+	public IDataProducer producedBy()
 	{
 		return m_producer;
 	}

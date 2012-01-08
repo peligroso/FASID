@@ -24,4 +24,5 @@ public interface ISTM
 	public void logInfo( String inMessage );
 	public void logError( String inMessage );
 	public IPublishedData createEmptyData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber );
+	public IPublishedData getData( String inKey );
 }

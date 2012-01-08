@@ -10,12 +10,21 @@ import org.juxtapose.fasid.stm.impl.ReferenceLink;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
+/**
+ * @author Pontus Jörgne
+ * Jan 8, 2012
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ */
 public abstract class DataProducer implements IDataProducer
 {
 	private final ConcurrentHashMap<Integer, ReferenceLink> keyToReferensLinks = new ConcurrentHashMap<Integer, ReferenceLink>();
 	protected final IDataKey dataKey;
 	protected final ISTM stm;
 	
+	/**
+	 * @param inKey
+	 * @param inSTM
+	 */
 	public DataProducer( IDataKey inKey, ISTM inSTM )
 	{
 		dataKey = inKey;
@@ -57,8 +66,10 @@ public abstract class DataProducer implements IDataProducer
 		}
 	}
 	
-	/**
-	 * @param inReferenceFields
+	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.producer.IDataProducer#disposeReferenceLinks(java.util.List)
+	 * disposeDataReference is always done within STM sync and IDataKey lock.
 	 */
 	public void disposeReferenceLinks( List< Integer > inReferenceFields )
 	{
@@ -70,6 +81,7 @@ public abstract class DataProducer implements IDataProducer
 	
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.producer.IDataProducer#initDataReferences(java.util.Map)
+	 * initDataReference is always done within STM sync and IDataKey lock.
 	 */
 	public void initDataReferences( Map< Integer, DataTypeRef > inDataReferences )
 	{
@@ -79,6 +91,8 @@ public abstract class DataProducer implements IDataProducer
 			ReferenceLink refLink = new ReferenceLink( this, stm, refKey, ref );
 			
 			keyToReferensLinks.put( refKey, refLink );
+			
+			refLink.start();
 		}
 	}
 	
@@ -87,6 +101,9 @@ public abstract class DataProducer implements IDataProducer
 		disposeAllReferenceLinks();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.producer.IDataProducer#referencedDataUpdated(java.lang.Integer, org.juxtapose.fasid.util.IPublishedData)
+	 */
 	public void referencedDataUpdated( final Integer inFieldKey, final IPublishedData inData )
 	{
 		final ReferenceLink link = keyToReferensLinks.get( inFieldKey );
@@ -97,7 +114,7 @@ public abstract class DataProducer implements IDataProducer
 			return;
 		}
 		
-		stm.commit( new DataTransaction( dataKey.getKey() )
+		stm.commit( new DataTransaction( dataKey.getKey(), this )
 		{
 			@Override
 			public void execute()

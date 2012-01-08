@@ -1,5 +1,6 @@
 package org.juxtapose.fasid.stm.exp;
 
+import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
@@ -8,9 +9,18 @@ import org.juxtapose.fasid.util.data.DataTypeRef;
 public abstract class DataTransaction extends Transaction
 {
 
-	protected DataTransaction(String inDataKey)
+	/**
+	 * @param inDataKey
+	 * Constructor is set private.DataTransaction(String inDataKey, IDataProducer inDataProducer ) should be used to ensure the update comes from a valid producer
+	 */
+	private DataTransaction(String inDataKey)
 	{
 		super(inDataKey);
+	}
+	
+	protected DataTransaction(String inDataKey, IDataProducer inDataProducer )
+	{
+		super(inDataKey, inDataProducer );
 	}
 	
 	public void addValue( Integer inKey, DataType<?> inData )

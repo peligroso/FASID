@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducerService;
+import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
@@ -76,51 +77,75 @@ public class BlockingSTM extends STM
 	 * @see org.juxtapose.fasid.stm.impl.STM#commit(org.juxtapose.fasid.stm.impl.Transaction)
 	 */
 	public void commit( Transaction inTransaction )
-	{
+	{	
 		String dataKey = inTransaction.getDataKey();
+		
+		IPublishedData newData = null;
+		
 		lock( dataKey );
 		
-		IPublishedData existingData = keyToData.get( dataKey );
-		if( existingData == null )
+		try
 		{
-			//data has been removed due to lack of interest, transaction is discarded
-			return;
+			IPublishedData existingData = keyToData.get( dataKey );
+			if( existingData == null )
+			{
+				//data has been removed due to lack of interest, transaction is discarded
+				unlock( dataKey );
+				return;
+			}
+
+			if( !STMUtil.validateProducerToData(existingData, inTransaction) )
+			{
+				logError( "Wrong version DataProducer tried to update data: "+dataKey );
+				//The producer for this data is of the wrong version, Transaction is discarded
+				unlock( dataKey );
+				return;
+			}
+
+			inTransaction.putInitDataState( existingData.getDataMap(), existingData.getStatus() );
+			inTransaction.execute();
+			IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
+			Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
+
+			newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus() );
+
+			keyToData.put( dataKey, newData );
+			
+		}catch( Throwable t )
+		{
+			logError( t.getMessage() );
 		}
-		
-		inTransaction.putInitDataState( existingData.getDataMap(), existingData.getStatus() );
-		inTransaction.execute();
-		IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
-		Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
-		
-		//Init reference links
+		finally
+		{
+			unlock( dataKey );
+		}
+			//Init reference links
 		Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
 		if( !dataReferences.isEmpty() )
 		{
-			IDataProducer producer = existingData.getProducer();
+			IDataProducer producer = newData.getProducer();
 			if( producer == null )
 				logError( "Tried to add reference to data with null producer" );
 			else
 				producer.initDataReferences( dataReferences );
 		}
-		
-		
+
+
 		//Dispose reference links
 		List< Integer > removedReferences = inTransaction.getRemovedReferences();
 		if( !removedReferences.isEmpty() )
 		{
-			IDataProducer producer = existingData.getProducer();
+			IDataProducer producer = newData.getProducer();
 			if( producer == null )
 				logError( "Tried to remove reference from data with null producer" );
 			else
 				producer.disposeReferenceLinks( removedReferences );
 		}
-		IPublishedData newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus() );
-		
-		keyToData.put( dataKey, newData );
-		
-		unlock( dataKey );
-		
-		newData.updateSubscribers( dataKey );
+			
+		if( newData != null )
+		{
+			newData.updateSubscribers( dataKey );
+		}
 	}
 	
 	/* (non-Javadoc)

@@ -1,10 +1,10 @@
 package org.juxtapose.fasid.stm.impl;
 
 import org.juxtapose.fasid.producer.DataProducer;
-import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
+import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
 /**
@@ -21,8 +21,6 @@ public class ReferenceLink implements IDataSubscriber
 	private final ISTM stm;
 	private final DataProducer parentProducer;
 	
-	private boolean firstUpdate = true;
-	
 	/**
 	 * @param inParent
 	 * @param inSTM
@@ -35,22 +33,20 @@ public class ReferenceLink implements IDataSubscriber
 		hashKey = inHashKey;
 		ref = inRef;
 		parentProducer = inProducer;
-		stm.subscribeToData( inRef.get(), this );
+	}
+	
+	public void start()
+	{
+		stm.subscribeToData( ref.get(), this );
 	}
 	
 	@Override
 	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
 	{
-		//First update is the response to subscribeToData and will not require an update
-		if( firstUpdate )
-		{ 
-			ref = new DataTypeRef( ref.get(), inData );
-			firstUpdate = false;
-		}
-		else
+		//Notify producer about delivered Data. ON_Request Data is not interesting
+		if( inData.getStatus() != Status.ON_REQUEST )
 		{
-			//Notify producer
-			parentProducer.referencedDataUpdated( hashKey, inData );			
+			parentProducer.referencedDataUpdated( hashKey, inData );
 		}
 	}
 	

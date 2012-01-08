@@ -33,9 +33,6 @@ import org.juxtapose.fasid.util.producerservices.ProducerServiceConstants;
  */
 public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber, IDataProducer
 {
-	/**Used for stack validation**/
-	static String COMMIT_METHOD = "commit";
-	
 	protected final ConcurrentHashMap<String, IPublishedData> keyToData = new ConcurrentHashMap<String, IPublishedData>();	
 	//Services that create producers to data id is service ID
 	protected final ConcurrentHashMap<Integer, IDataProducerService> idToProducerService = new ConcurrentHashMap<Integer, IDataProducerService>();
@@ -63,7 +60,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		Integer id = inProducerService.getServiceId();
 		idToProducerService.put( id, inProducerService );
 		
-		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey() )
+		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this )
 		{
 			@Override
 			public void execute()
@@ -79,7 +76,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	 */
 	public void updateProducerStatus( final IDataProducerService inProducerService, final Status initState )
 	{
-		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey() )
+		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this )
 		{
 			@Override
 			public void execute()
@@ -225,6 +222,11 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	public void logError( String inMessage )
 	{
 		System.err.println( inMessage );
+	}
+	
+	public IPublishedData getData( String inKey )
+	{
+		return keyToData.get( inKey );
 	}
 	
 	public void initDataReferences( Map< Integer, DataTypeRef > inDataReferences ){}

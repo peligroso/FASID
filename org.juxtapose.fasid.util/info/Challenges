@@ -1,0 +1,17 @@
+Update overtake
+ 
+ update		A		B
+ 			\		/
+ 				Obj1
+ 				A||B
+ 				 ||
+				Obj2
+			
+			B overtakes A between update from Obj1 to Obj2
+			Obj2 will be recalculated with data from "Obj1 update B" and then recalculated from "Obj2 update A"
+			Leaving Obj2 in a state calculated from "Obj2 update A", which is stale.
+				
+Deadlock due to Transaction within Transaction Within Transaction
+Is this a problem? or will it simply work?
+
+Reference to Reference eternal loop

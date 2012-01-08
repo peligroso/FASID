@@ -1,16 +1,16 @@
 
 package org.juxtapose.fxtradingsystem.priceengine;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
-import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
-import org.juxtapose.fasid.util.data.DataTypeData;
+import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeRef;
-import org.juxtapose.fasid.util.data.DataTypeString;
-import org.juxtapose.fxtradingsystem.FXDataConstants;
 
 /**
  * @author Pontus Jörgne
@@ -30,25 +30,18 @@ public class CcyModelProducer extends DataProducer
 	@Override
 	public void start()
 	{
-		stm.execute( new Runnable()
+		stm.commit( new DataTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey(), CcyModelProducer.this )
 		{
 			@Override
-			public void run()
+			public void execute()
 			{
-				stm.commit( new DataTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey() )
-				{
-					@Override
-					public void execute()
-					{
-						setStatus( Status.OK );
-						addReference(PriceEngineDataConstants.FIELD_EUR, new DataTypeRef( PriceEngineKeyConstants.CCY_EUR_KEY ) );
-						addReference(PriceEngineDataConstants.FIELD_SEK, new DataTypeRef( PriceEngineKeyConstants.CCY_SEK_KEY ) );
-//						addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
-//						addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
-//						
-//						addPriceUpdate( rand, this );
-					}
-				});
+				setStatus( Status.INITIALIZING );
+				addReference(PriceEngineDataConstants.FIELD_EUR, new DataTypeRef( PriceEngineKeyConstants.CCY_EUR_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_SEK, new DataTypeRef( PriceEngineKeyConstants.CCY_SEK_KEY ) );
+				//						addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
+				//						addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
+				//						
+				//						addPriceUpdate( rand, this );
 			}
 		});
 	}
@@ -63,6 +56,52 @@ public class CcyModelProducer extends DataProducer
 	public void stop()
 	{
 		// TODO Auto-generated method stub
+		
+	}
+	
+	public void referencedDataUpdated( final Integer inFieldKey, final IPublishedData inData )
+	{
+		super.referencedDataUpdated( inFieldKey, inData );
+		checkStatus();
+	}
+	
+	public void checkStatus()
+	{
+		IPublishedData data = stm.getData( dataKey.getKey() );
+		if( data != null )
+		{
+			if( data.getStatus() == Status.INITIALIZING )
+			{
+				Iterator<Entry<Integer, DataType<?>>> iterator = data.getDataMap().iterator();
+				
+				while( iterator.hasNext() )
+				{
+					Entry<Integer, DataType<?>> entry = iterator.next();
+					
+					IPublishedData ref = ((DataTypeRef)entry.getValue()).getReferenceData();
+					
+					if( ref != null )
+					{
+						if( ref.getStatus() != Status.OK )
+							return;
+					}
+					else
+					{
+						return;
+					}
+				}
+				
+				stm.commit( new DataTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey(), CcyModelProducer.this )
+				{
+					@Override
+					public void execute()
+					{
+						setStatus( Status.OK );
+					}
+				});
+			}
+		}
+			
 		
 	}
 
