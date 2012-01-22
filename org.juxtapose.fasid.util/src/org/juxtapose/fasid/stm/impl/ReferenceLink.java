@@ -1,6 +1,6 @@
 package org.juxtapose.fasid.stm.impl;
 
-import org.juxtapose.fasid.producer.DataProducer;
+import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -14,12 +14,12 @@ import org.juxtapose.fasid.util.data.DataTypeRef;
  * 
  * Class to holds subscription between the referenced publishedData and the data reference.
  */
-public class ReferenceLink implements IDataSubscriber
+public class ReferenceLink extends TemporaryController implements IDataSubscriber
 {
 	private final Integer hashKey;
 	private DataTypeRef ref;
 	private final ISTM stm;
-	private final DataProducer parentProducer;
+	private final IDataProducer parentProducer;
 	
 	/**
 	 * @param inParent
@@ -27,7 +27,7 @@ public class ReferenceLink implements IDataSubscriber
 	 * @param inHashKey
 	 * @param inRef
 	 */
-	public ReferenceLink( DataProducer inProducer, ISTM inSTM, Integer inHashKey, DataTypeRef inRef )
+	public ReferenceLink( IDataProducer inProducer, ISTM inSTM, Integer inHashKey, DataTypeRef inRef )
 	{
 		stm = inSTM;
 		hashKey = inHashKey;
@@ -35,7 +35,7 @@ public class ReferenceLink implements IDataSubscriber
 		parentProducer = inProducer;
 	}
 	
-	public void start()
+	protected void start()
 	{
 		stm.subscribeToData( ref.get(), this );
 	}
@@ -46,7 +46,7 @@ public class ReferenceLink implements IDataSubscriber
 		//Notify producer about delivered Data. ON_Request Data is not interesting
 		if( inData.getStatus() != Status.ON_REQUEST )
 		{
-			parentProducer.referencedDataUpdated( hashKey, inData );
+			parentProducer.referencedDataUpdated( hashKey, this, inData );
 		}
 	}
 	
@@ -56,7 +56,7 @@ public class ReferenceLink implements IDataSubscriber
 	}
 			
 	
-	public void dispose()
+	protected void stop()
 	{
 		stm.unsubscribeToData( ref.get(), this );
 	}

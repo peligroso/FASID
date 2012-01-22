@@ -86,6 +86,10 @@ public abstract class Transaction
 		m_deltaState.put(inKey, inData);
 	}
 	
+	/**
+	 * @param inKey
+	 * @param inDataTypeRef
+	 */
 	public void updateReferenceValue( Integer inKey, DataTypeRef inDataTypeRef )
 	{
 		assert STMUtil.validateTransactionStack() : "Transaction.updateReferenceValue was not from called from within a STM commit as required";
@@ -182,5 +186,10 @@ public abstract class Transaction
 	public Status getStatus()
 	{
 		return status;
+	}
+	
+	public DataType<?> get( Integer inFieldKey )
+	{
+		return m_stateInstruction.valAt( inFieldKey );
 	}
 }

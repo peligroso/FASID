@@ -71,6 +71,32 @@ public class STMUtil {
 		return !inInclusive;
 	}
 	
+	public static boolean validateStackMethodCall( String inClassName, String inMethodName, boolean inInclusive )
+	{
+		StackTraceElement stEl[] = Thread.currentThread().getStackTrace();
+		for (StackTraceElement element : stEl )
+		{
+			if( element.getClassName().equals( inClassName ) && element.getMethodName().equals( inMethodName ) )
+			{
+				return inInclusive;
+			}
+		}
+		
+		return !inInclusive;
+	}
+	
+	public static boolean validateStackMethodCall( String inClassName, String inMethodName, boolean inInclusive, int inIndex )
+	{
+		StackTraceElement stEl[] = Thread.currentThread().getStackTrace();
+		StackTraceElement element = stEl[inIndex];
+		
+		if( element.getClassName().equals( inClassName ) && element.getMethodName().equals( inMethodName ) )
+		{
+			return inInclusive;
+		}
+		return !inInclusive;
+	}
+	
 	/**
 	 * @param inClassName
 	 * @return

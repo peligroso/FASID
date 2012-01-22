@@ -82,6 +82,9 @@ public class BlockingSTM extends STM
 		
 		IPublishedData newData = null;
 		
+		ReferenceLink[] addedLinks = null;
+		ReferenceLink[] removedLinks = null;
+		
 		lock( dataKey );
 		
 		try
@@ -111,6 +114,54 @@ public class BlockingSTM extends STM
 
 			keyToData.put( dataKey, newData );
 			
+			//Init reference links
+			Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
+			addedLinks = new ReferenceLink[ dataReferences.size() ];
+			
+			if( !dataReferences.isEmpty() )
+			{
+				IDataProducer producer = newData.getProducer();
+				if( producer == null )
+					logError( "Tried to add reference to data with null producer" );
+				else
+				{
+					int i = 0;
+					for( Integer fieldKey : dataReferences.keySet() )
+					{
+						DataTypeRef ref = dataReferences.get( fieldKey );
+						ReferenceLink refLink = new ReferenceLink( producer, this, fieldKey, ref );
+						addedLinks[i] = refLink;
+						i++;
+					}
+				}
+			}
+
+
+			//Dispose reference links
+			List< Integer > removedReferences = inTransaction.getRemovedReferences();
+			removedLinks = new ReferenceLink[ removedReferences.size() ];
+			
+			if( !removedReferences.isEmpty() )
+			{
+				IDataProducer producer = newData.getProducer();
+				if( producer == null )
+					logError( "Tried to remove reference from data with null producer" );
+				else
+				{
+					int i = 0;
+					for( Integer fieldKey : dataReferences.keySet() )
+					{
+						ReferenceLink refLink = producer.removeReferenceLink( fieldKey );
+						if( refLink == null )
+						{
+							logError( "Tried to remove reference Link that is not stored in the producer" );
+						}
+						removedLinks[i] = refLink;
+						i++;
+					}
+				}
+			}
+			
 		}catch( Throwable t )
 		{
 			logError( t.getMessage() );
@@ -119,27 +170,15 @@ public class BlockingSTM extends STM
 		{
 			unlock( dataKey );
 		}
-			//Init reference links
-		Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
-		if( !dataReferences.isEmpty() )
+		
+		for( ReferenceLink link : addedLinks )
 		{
-			IDataProducer producer = newData.getProducer();
-			if( producer == null )
-				logError( "Tried to add reference to data with null producer" );
-			else
-				producer.initDataReferences( dataReferences );
+			link.init();
 		}
-
-
-		//Dispose reference links
-		List< Integer > removedReferences = inTransaction.getRemovedReferences();
-		if( !removedReferences.isEmpty() )
+		
+		for( ReferenceLink link : removedLinks )
 		{
-			IDataProducer producer = newData.getProducer();
-			if( producer == null )
-				logError( "Tried to remove reference from data with null producer" );
-			else
-				producer.disposeReferenceLinks( removedReferences );
+			link.dispose();
 		}
 			
 		if( newData != null )
@@ -187,7 +226,7 @@ public class BlockingSTM extends STM
 		unlock( inDataKey.getKey() );
 		
 		if( producer != null )
-			producer.start();
+			producer.init();
 		
 		inSubscriber.updateData( inDataKey.getKey(), newData, true );
 	}
@@ -235,7 +274,7 @@ public class BlockingSTM extends STM
 		unlock( inDataKey.getKey() );
 		
 		if( producer != null )
-			producer.stop();
+			producer.dispose();
 		
 	}
 

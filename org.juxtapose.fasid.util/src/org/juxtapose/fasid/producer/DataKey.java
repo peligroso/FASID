@@ -76,6 +76,9 @@ public class DataKey implements IDataKey
 	 */
 	public boolean equals( Object inKey )
 	{
+		if( inKey == this )
+			return true;
+		
 		if( ! (inKey instanceof IDataKey) )
 			return false;
 		

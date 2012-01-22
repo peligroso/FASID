@@ -1,19 +1,14 @@
 package org.juxtapose.fasid.producer;
 
-import java.util.List;
-import java.util.Map;
-
+import org.juxtapose.fasid.stm.impl.ReferenceLink;
 import org.juxtapose.fasid.util.IPublishedData;
-import org.juxtapose.fasid.util.data.DataTypeRef;
 
 public interface IDataProducer
 {
-	public void start();
-	public void stop();
+	public void init();
+	public void dispose();
 	
-	public void initDataReferences( Map< Integer, DataTypeRef > inDataReferences );
-	public void disposeReferenceLink( Integer inField );
-	public void disposeReferenceLinks( List< Integer > inReferenceFields );
-	public void disposeAllReferenceLinks( );
-	public void referencedDataUpdated( Integer inFieldKey, IPublishedData inData );
+	public void addDataReferences( Integer inFieldKey, ReferenceLink inLink );
+	public ReferenceLink removeReferenceLink( Integer inField );
+	public void referencedDataUpdated( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData );
 }

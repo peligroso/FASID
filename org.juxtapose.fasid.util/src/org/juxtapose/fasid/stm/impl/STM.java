@@ -137,11 +137,11 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		
 	}
 	
-	public void start()
+	public void init()
 	{
 		
 	}
-	public void stop()
+	public void dispose()
 	{
 		
 	}
@@ -224,14 +224,23 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		System.err.println( inMessage );
 	}
 	
+	public void logWarning( String inMessage )
+	{
+		System.err.println( inMessage );
+	}
+	
+	public void logDebug( String inMessage )
+	{
+		System.err.println( inMessage );
+	}
+	
 	public IPublishedData getData( String inKey )
 	{
 		return keyToData.get( inKey );
 	}
 	
-	public void initDataReferences( Map< Integer, DataTypeRef > inDataReferences ){}
-	public void disposeReferenceLink( Integer inField ){}
+	public void addDataReferences( Integer inFieldKey, ReferenceLink inLink ){}
+	public ReferenceLink removeReferenceLink( Integer inField ){ return null; }
 	public void disposeReferenceLinks( List< Integer > inReferenceFields ){}
-	public void disposeAllReferenceLinks( ){}
-	public void referencedDataUpdated( Integer inFieldKey, IPublishedData inData ){}
+	public void referencedDataUpdated( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData ){}
 }

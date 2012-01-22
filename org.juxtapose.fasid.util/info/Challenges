@@ -15,3 +15,8 @@ Deadlock due to Transaction within Transaction Within Transaction
 Is this a problem? or will it simply work?
 
 Reference to Reference eternal loop
+
+Race condition in Reference links
+	If someone adds a reference and then removes a reference on two different threads the remove might be done before the add
+	Since references are created/disposed outside of locking scheme.
+	That will may cause a long chain of events to take place within the lock.

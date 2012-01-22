@@ -45,7 +45,7 @@ public class NonBlockingSTM extends STM
 				if( set )
 				{
 					//Init producer
-					producer.start();
+					producer.init();
 				}
 			}
 			else
@@ -98,7 +98,7 @@ public class NonBlockingSTM extends STM
 					set = keyToData.remove( inDataKey.getKey(), existingData );
 					if( set )
 					{
-						existingData.getProducer().stop();
+						existingData.getProducer().dispose();
 					}
 				}
 				

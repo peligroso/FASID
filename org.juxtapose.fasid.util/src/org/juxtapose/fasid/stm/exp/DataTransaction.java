@@ -18,6 +18,10 @@ public abstract class DataTransaction extends Transaction
 		super(inDataKey);
 	}
 	
+	/**
+	 * @param inDataKey
+	 * @param inDataProducer the producer that creates the transaction and is responsable for updating the data should always include itself in the method call for validation purpose, e.g. new DataTransaction(dataKey, <b>this</b> ) 
+	 */
 	protected DataTransaction(String inDataKey, IDataProducer inDataProducer )
 	{
 		super(inDataKey, inDataProducer );
@@ -41,6 +45,11 @@ public abstract class DataTransaction extends Transaction
 	public void setStatus( Status inStatus )
 	{
 		super.setStatus( inStatus );
+	}
+	
+	public DataType<?> get( Integer inFieldKey )
+	{
+		return super.get( inFieldKey );
 	}
 
 }
