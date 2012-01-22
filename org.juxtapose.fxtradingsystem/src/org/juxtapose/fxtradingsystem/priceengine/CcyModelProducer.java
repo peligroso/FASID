@@ -2,11 +2,13 @@
 package org.juxtapose.fxtradingsystem.priceengine;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
+import org.juxtapose.fasid.stm.impl.ReferenceLink;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
@@ -59,9 +61,11 @@ public class CcyModelProducer extends DataProducer
 		
 	}
 	
-	public void referencedDataUpdated( final Integer inFieldKey, final IPublishedData inData )
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.producer.IDataProducer#referencedDataUpdated(java.lang.Integer, org.juxtapose.fasid.util.IPublishedData)
+	 */
+	public void postReferenceDataCall( Integer inFieldKey, ReferenceLink inLink, IPublishedData inData )
 	{
-		super.referencedDataUpdated( inFieldKey, inData );
 		checkStatus();
 	}
 	

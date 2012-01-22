@@ -1,6 +1,5 @@
 package org.juxtapose.fxtradingsystem.lpmockup;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 public class Instrument
@@ -12,8 +11,6 @@ public class Instrument
 	public Double bid;
 	public Double ask;
 	
-	public ArrayList<ILPListener> subscribers = new ArrayList<ILPListener>();
-	
 	public Instrument( String inCcy1, String inCcy2, String inPeriod )
 	{
 		ccy1 = inCcy1;
@@ -21,10 +18,6 @@ public class Instrument
 		period = inPeriod;
 	}
 	
-	public void addSubscriber( ILPListener inListener )
-	{
-		subscribers.add( inListener );
-	}
 	
 	public void addPriceUpdate( final Random inRand )
 	{
@@ -32,13 +25,6 @@ public class Instrument
 		ask = inRand.nextDouble();
 	}
 	
-	public void updateSubscribers()
-	{
-		for( ILPListener listener : subscribers )
-		{
-			listener.priceUpdate( ccy1, ccy2, period, bid, ask );
-		}
-	}
 	
 	public String getKey()
 	{
