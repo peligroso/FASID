@@ -48,12 +48,12 @@ public class CcyProducer extends DataProducer
 					public void execute()
 					{
 						setStatus( Status.OK );
-						addValue(FXDataConstants.FIELD_PIP, new DataTypeLong(10000L) );
-						addValue(FXDataConstants.FIELD_DECIMALS, new DataTypeLong(5L) );
+						putValue(FXDataConstants.FIELD_PIP, new DataTypeLong(10000L) );
+						putValue(FXDataConstants.FIELD_DECIMALS, new DataTypeLong(5L) );
 						if( ccy.equals(STATE_EUR))
-							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_USD) );
+							putValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_USD) );
 						else
-							addValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_EUR) );
+							putValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_EUR) );
 					}
 				});
 			}

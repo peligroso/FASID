@@ -65,7 +65,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 			@Override
 			public void execute()
 			{
-				addValue( inProducerService.getServiceId(), new DataTypeString( initState.toString() ) );
+				putValue( inProducerService.getServiceId(), new DataTypeString( initState.toString() ) );
 			}
 		});
 	}
@@ -81,7 +81,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 			@Override
 			public void execute()
 			{
-				addValue( inProducerService.getServiceId(), new DataTypeString( initState.toString() ) );
+				putValue( inProducerService.getServiceId(), new DataTypeString( initState.toString() ) );
 			}
 		});
 	}
@@ -222,6 +222,12 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	public void logError( String inMessage )
 	{
 		System.err.println( inMessage );
+	}
+	
+	public void logError( String inMessage, Throwable inThrowable )
+	{
+		System.err.println( inMessage );
+		inThrowable.printStackTrace();
 	}
 	
 	public void logWarning( String inMessage )

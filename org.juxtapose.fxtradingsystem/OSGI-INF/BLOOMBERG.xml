@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" enabled="true" immediate="true" name="org.juxtapose.fxtradingsystem.reuters">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" enabled="true" immediate="true" name="org.juxtapose.fxtradingsystem.bloomberg">
    <implementation class="org.juxtapose.fxtradingsystem.quoteprovider.QuoteProvider"/>
-   <property name="NAME" type="String" value="REUTERS"/>
+   <property name="NAME" type="String" value="BLOOMBERG"/>
    <service>
       <provide interface="org.juxtapose.fxtradingsystem.quoteprovider.IQuoteProvider"/>
    </service>

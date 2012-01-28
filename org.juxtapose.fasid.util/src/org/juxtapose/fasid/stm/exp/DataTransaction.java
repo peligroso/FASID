@@ -27,9 +27,9 @@ public abstract class DataTransaction extends Transaction
 		super(inDataKey, inDataProducer );
 	}
 	
-	public void addValue( Integer inKey, DataType<?> inData )
+	public void putValue( Integer inKey, DataType<?> inData )
 	{
-		super.addValue(inKey, inData);
+		super.putValue(inKey, inData);
 	}
 
 	public void removeValue( Integer inKey )throws Exception

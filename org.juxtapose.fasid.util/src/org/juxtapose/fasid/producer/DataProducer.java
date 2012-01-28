@@ -1,16 +1,14 @@
 package org.juxtapose.fasid.producer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.stm.impl.ReferenceLink;
 import org.juxtapose.fasid.stm.impl.TemporaryController;
 import org.juxtapose.fasid.util.IPublishedData;
+import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
@@ -135,6 +133,18 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 	protected void postReferenceDataCall( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData )
 	{
 		
+	}
+	
+	protected void setStatus( final Status inStatus )
+	{
+		stm.commit( new DataTransaction( dataKey.getKey(), DataProducer.this )
+		{
+			@Override
+			public void execute()
+			{
+				setStatus( inStatus );
+			}
+		});
 	}
 	
 }

@@ -6,5 +6,6 @@ public enum Status {
 	INITIALIZING,
 	ON_REQUEST,
 	STALE,
+	ERROR,
 	NA;
 }

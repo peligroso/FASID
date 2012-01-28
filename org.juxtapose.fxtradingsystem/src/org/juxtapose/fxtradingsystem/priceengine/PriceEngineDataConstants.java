@@ -1,14 +1,10 @@
 package org.juxtapose.fxtradingsystem.priceengine;
 
-import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.producer.ProducerUtil;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
-import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
 
 public class PriceEngineDataConstants extends FXDataConstants
 {
 	public static final int BASE = FXDataConstants.getBase();
-	public static final int TYPE = BASE+1;
 	
 	public static final String STATE_TYPE_CCYMODEL = "CCY_MODEL";
 	public static final String STATE_TYPE_PRICE = "PRICE";

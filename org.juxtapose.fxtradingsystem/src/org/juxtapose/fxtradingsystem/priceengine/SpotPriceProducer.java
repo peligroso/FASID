@@ -1,28 +1,36 @@
 package org.juxtapose.fxtradingsystem.priceengine;
 
-import java.util.List;
+import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.STATE_EUR;
+import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.STATE_SEK;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.stm.exp.DataTransaction;
 import org.juxtapose.fasid.stm.exp.ISTM;
+import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
+import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
-import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
+import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
+import org.juxtapose.fxtradingsystem.marketdata.MarketDataConstants;
 
 /**
  * @author Pontus Jörgne
  * 6 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class SpotPriceProducer extends DataProducer
+public class SpotPriceProducer extends DataProducer implements IDataSubscriber
 {
 	final String ccy1;
 	final String ccy2;
+	
+	IDataKey marketDataKey;
 	
 	/**
 	 * @param inKey
@@ -37,50 +45,30 @@ public class SpotPriceProducer extends DataProducer
 		ccy2 = inCcy2;
 	}
 	
+	public void subscribe()
+	{
+		HashMap<Integer, String> query = new HashMap<Integer, String>();
+		query.put( MarketDataConstants.FIELD_TYPE, MarketDataConstants.STATE_TYPE_INSTRUMENT );
+		query.put( MarketDataConstants.FIELD_CCY1, ccy1 );
+		query.put( MarketDataConstants.FIELD_CCY2, ccy2 );
+		query.put( MarketDataConstants.FIELD_PERIOD, FXDataConstants.STATE_PERIOD_SP );
+		query.put( MarketDataConstants.FIELD_SOURCE, "REUTERS" );
+		
+		PriceEngineUtil.getPriceQuery( STATE_EUR, STATE_SEK );
+		IDataKey dataKey = stm.getDataKey( FXProducerServiceConstants.MARKET_DATA, query );
+		if( dataKey == null )
+		{
+			setStatus( Status.ERROR );
+			stm.logError( "could not retrieve datakey from market data" );
+			return;
+		}
+		
+		stm.subscribeToData( dataKey, this );
+	}
+	
 	public void start()
 	{
-		final Random rand = new Random();
-		
-//		stm.commit( new DataTransaction( key )
-//		{
-//			@Override
-//			public void execute()
-//			{
-//				addValue(PriceEngineDataConstants.CCY1, new DataTypeString(ccy1) );
-//				addValue(PriceEngineDataConstants.CCY2, new DataTypeString(ccy2) );
-//				addValue(DataConstants.DATA_STATUS, new DataTypeString(Status.ON_REQUEST.toString()) );
-//				
-////				addPriceUpdate( rand, this );
-//			}
-//		});
-		
-		ReentrantLock eursekLock = new ReentrantLock( true );
-		
-		for( int i = 0; i < 20; i++ )
-		{
-			final boolean first = i == 0;
-			stm.execute( new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this )
-					{
-						@Override
-						public void execute()
-						{
-							if ( first )
-								setStatus( Status.OK );
-							
-							addValue( FXDataConstants.FIELD_CCY1, new DataTypeString( ccy1 ) );
-							addValue( FXDataConstants.FIELD_CCY2, new DataTypeString( ccy2 ) );
-							
-							addPriceUpdate( rand, this );
-						}
-					});
-				}
-			}, eursekLock);
-		}
+		subscribe();
 	}
 	
 	/**
@@ -95,17 +83,44 @@ public class SpotPriceProducer extends DataProducer
 		
 		final DataTypeBigDecimal spread = new DataTypeBigDecimal( ask.get().subtract( bid.get() ) );
 		
-		inTransaction.addValue(FXDataConstants.FIELD_BID, bid );
-		inTransaction.addValue(FXDataConstants.FIELD_ASK, ask );
-		inTransaction.addValue(FXDataConstants.FIELD_SPREAD, spread );
+		inTransaction.putValue(FXDataConstants.FIELD_BID, bid );
+		inTransaction.putValue(FXDataConstants.FIELD_ASK, ask );
+		inTransaction.putValue(FXDataConstants.FIELD_SPREAD, spread );
 	}
 
 
 	@Override
 	public void stop()
 	{
-		// TODO Auto-generated method stub
-		
+		stm.unsubscribeToData( marketDataKey, this );
 	}
 
+	@Override
+	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	{
+		if( inData.getStatus() == Status.OK )
+		{
+			stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this )
+			{
+				@Override
+				public void execute()
+				{
+					if( getStatus() == Status.ON_REQUEST)
+						setStatus( Status.OK );
+					
+					DataType<?> bid = inData.getValue( FXDataConstants.FIELD_BID );
+					DataType<?> ask = inData.getValue( FXDataConstants.FIELD_ASK );
+
+					BigDecimal bidVal = (BigDecimal)bid.get();
+					BigDecimal askVal = (BigDecimal)ask.get();
+
+					final DataTypeBigDecimal spread = new DataTypeBigDecimal( askVal.subtract( bidVal ) );
+					
+					putValue(FXDataConstants.FIELD_BID, bid );
+					putValue(FXDataConstants.FIELD_ASK, ask );
+					putValue(FXDataConstants.FIELD_SPREAD, spread );
+				}
+			});
+		}
+	}
 }

@@ -6,4 +6,5 @@
       <provide interface="org.juxtapose.fxtradingsystem.priceengine.IPriceEngine"/>
    </service>
    <reference bind="bindSTM" cardinality="1..1" interface="org.juxtapose.fasid.stm.exp.ISTM" name="ISTM" policy="static"/>
+   <reference cardinality="1..1" interface="org.juxtapose.fxtradingsystem.marketdata.IMarketDataService" name="IMarketDataService" policy="static"/>
 </scr:component>

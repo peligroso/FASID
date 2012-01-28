@@ -23,6 +23,7 @@ public interface ISTM
 	public IDataKey getDataKey(Integer inProducerService, HashMap<Integer, String> inQuery);
 	public void logInfo( String inMessage );
 	public void logError( String inMessage );
+	public void logError( String inMessage, Throwable inThrowable );
 	public void logWarning( String inMessage );
 	public void logDebug( String inMessage );
 	public IPublishedData createEmptyData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber );

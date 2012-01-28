@@ -6,33 +6,48 @@ public class FXDataConstants extends DataConstants
 {
 	public static final int BASE = DataConstants.getBase();
 	
-	public static final int FIELD_CCY1 = BASE;
-	public static final int FIELD_CCY2 = BASE+1;
-	public static final int FIELD_BID = BASE+2;
-	public static final int FIELD_ASK = BASE+3;
-	public static final int FIELD_SPREAD = BASE+4;
-	public static final int FIELD_DECIMALS = BASE+5;
-	public static final int FIELD_PIP = BASE+6;
-	public static final int FIELD_BASE_CCY = BASE+7;
-	public static final int FIELD_QUOTE_CCY = BASE+8;
+	private static int inc = BASE;
 	
-	public static final int FIELD_EUR = BASE+9;
-	public static final int FIELD_USD = BASE+10;
-	public static final int FIELD_GBP = BASE+11;
-	public static final int FIELD_AUD = BASE+12;
-	public static final int FIELD_CHF = BASE+13;
-	public static final int FIELD_NZD = BASE+14;
-	public static final int FIELD_JPY = BASE+15;
-	public static final int FIELD_NOK = BASE+16;
-	public static final int FIELD_SEK = BASE+17;
-	public static final int FIELD_DKK = BASE+18;
-	public static final int FIELD_TRY = BASE+19;
-	public static final int FIELD_RUB = BASE+20;
-	public static final int FIELD_CAD = BASE+21;
-	public static final int FIELD_MXN = BASE+22;
+	public static final int FIELD_CCY1 = new Integer(++inc);
+	public static final int FIELD_CCY2 = new Integer(++inc);
+	public static final int FIELD_PERIOD = new Integer(++inc);
+	public static final int FIELD_BID = new Integer(++inc);
+	public static final int FIELD_ASK = new Integer(++inc);
+	public static final int FIELD_SPREAD = new Integer(++inc);
+	public static final int FIELD_DECIMALS = new Integer(++inc);
+	public static final int FIELD_PIP = new Integer(++inc);
+	public static final int FIELD_BASE_CCY = new Integer(++inc);
+	public static final int FIELD_QUOTE_CCY = new Integer(++inc);
 	
+	public static final int FIELD_EUR = new Integer(++inc);
+	public static final int FIELD_USD = new Integer(++inc);
+	public static final int FIELD_GBP = new Integer(++inc);
+	public static final int FIELD_AUD = new Integer(++inc);
+	public static final int FIELD_CHF = new Integer(++inc);
+	public static final int FIELD_NZD = new Integer(++inc);
+	public static final int FIELD_JPY = new Integer(++inc);
+	public static final int FIELD_NOK = new Integer(++inc);
+	public static final int FIELD_SEK = new Integer(++inc);
+	public static final int FIELD_DKK = new Integer(++inc);
+	public static final int FIELD_TRY = new Integer(++inc);
+	public static final int FIELD_RUB = new Integer(++inc);
+	public static final int FIELD_CAD = new Integer(++inc);
+	public static final int FIELD_MXN = new Integer(++inc);
+	
+	public static String STATE_PERIOD_SP = "SP";
+	public static String STATE_PERIOD_1W = "1W";
+	public static String STATE_PERIOD_1M = "1M";
+	public static String STATE_PERIOD_3M = "3M";
+	public static String STATE_PERIOD_6M = "6M";
+	public static String STATE_PERIOD_9M = "9M";
+	public static String STATE_PERIOD_1Y = "1Y";
+	
+	static
+	{
+		inc = new Integer(++inc);
+	}
 	public static int getBase()
 	{
-		return BASE+23;
+		return inc;
 	}
 }

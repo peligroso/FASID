@@ -77,7 +77,7 @@ public abstract class Transaction
 	 * @param inKey
 	 * @param inData
 	 */
-	public void addValue( Integer inKey, DataType<?> inData )
+	public void putValue( Integer inKey, DataType<?> inData )
 	{
 		assert STMUtil.validateTransactionStack() : "Transaction.addValue was not from called from within a STM commit as required";
 		assert !( inData instanceof DataTypeRef ) : "Reference values should be added via addReference method";

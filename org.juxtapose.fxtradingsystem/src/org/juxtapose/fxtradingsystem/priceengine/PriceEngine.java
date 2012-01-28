@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
-import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.producer.ProducerUtil;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
@@ -19,7 +18,7 @@ import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
  * 17 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class PriceEngine extends DataProducerService implements IPriceEngine, IDataProducerService, IDataSubscriber
+public class PriceEngine extends DataProducerService implements IPriceEngine, IDataSubscriber
 {
 
 	/* (non-Javadoc)
@@ -37,7 +36,7 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 	@Override
 	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
 	{
-		String type = inQuery.get( PriceEngineDataConstants.TYPE );
+		String type = inQuery.get( PriceEngineDataConstants.FIELD_TYPE );
 		if( type == null )
 		{
 			stm.logError( "No type defined for dataKey "+inQuery );

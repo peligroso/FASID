@@ -15,11 +15,13 @@ import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
 import org.exolab.jms.administration.AdminConnectionFactory;
 import org.exolab.jms.administration.JmsAdminServerIfc;
+import org.exolab.jms.message.ObjectMessageImpl;
 
 
 
@@ -37,7 +39,7 @@ public class QuoteProvider extends QuoteProviderActivator
 	private String senderTopic;
 	private String recieverTopic;
 	
-	List<SubscribeMessage> subscribedInstruments = new Vector<SubscribeMessage>();
+	List<QPMessage> subscribedInstruments = new Vector<QPMessage>();
 	
 	Random rand = new Random();
 	
@@ -112,13 +114,13 @@ public class QuoteProvider extends QuoteProviderActivator
 				    
 				    for(;;)
 				    {
-				    	for( SubscribeMessage sub : subscribedInstruments.toArray( new SubscribeMessage[]{} ) )
+				    	for( QPMessage sub : subscribedInstruments.toArray( new QPMessage[]{} ) )
 				    	{
 				    		double bid = rand.nextDouble();
 				    		double ask = rand.nextDouble();
 
-				    		QuoteMessage quoteMessage = new QuoteMessage(sub.ccy1, sub.ccy2, sub.period, bid, ask );
-				    		ObjectMessage message = session.createObjectMessage( quoteMessage );
+				    		QPMessage quoteMessage = new QPMessage( QPMessage.QUOTE, sub.ccy1, sub.ccy2, sub.period, bid, ask );
+				    		TextMessage message = session.createTextMessage( quoteMessage.toString() );
 
 				    		sender.send(message);
 
@@ -170,20 +172,22 @@ public class QuoteProvider extends QuoteProviderActivator
 				        public void onMessage(Message message) {
 				        	try
 				        	{
-				        		if( message instanceof SubscribeMessage )
+				        		TextMessage textMessage = (TextMessage)message;
+				        		String messageStr = textMessage.getText();
+				        		
+				        		QPMessage mess = new QPMessage( messageStr );
+				        		
+				        		if( mess.type.equals( QPMessage.SUBSCRIBE ) )
 				        		{
-				        			SubscribeMessage sub = (SubscribeMessage) message;
-				        			subscribedInstruments.add( sub );
+				        			subscribedInstruments.add( mess );
 				        		}
-				        		if( message instanceof UnsubscribeMessage )
+				        		else if( mess.type.equals( QPMessage.UNSUBSCRIBE ) )
 				        		{
-				        			UnsubscribeMessage unSub = (UnsubscribeMessage) message;
-				        			
-				        			Iterator<SubscribeMessage> iter = subscribedInstruments.iterator();
+				        			Iterator<QPMessage> iter = subscribedInstruments.iterator();
 				        			while( iter.hasNext() )
 				        			{
-				        				SubscribeMessage sub = iter.next();
-				        				if( sub.ccy1.equals( unSub.ccy1 ) && sub.ccy2.equals(  unSub.ccy2 ) && sub.period.equals(  unSub.period ) )
+				        				QPMessage sub = iter.next();
+				        				if( sub.ccy1.equals( mess.ccy1 ) && sub.ccy2.equals(  mess.ccy2 ) && sub.period.equals(  mess.period ) )
 				        				{
 				        					iter.remove();
 				        				}
