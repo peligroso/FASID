@@ -18,6 +18,7 @@ public class FXDataConstants extends DataConstants
 	public static final int FIELD_PIP = new Integer(++inc);
 	public static final int FIELD_BASE_CCY = new Integer(++inc);
 	public static final int FIELD_QUOTE_CCY = new Integer(++inc);
+	public static final int FIELD_STATIC_DATA = new Integer(++inc);
 	
 	public static final int FIELD_EUR = new Integer(++inc);
 	public static final int FIELD_USD = new Integer(++inc);

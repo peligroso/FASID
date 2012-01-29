@@ -4,3 +4,5 @@
 *No mutable variables should need to be declared as object references or primitives
 
 *No external (outside fasid) locks or other synchronizing mechanism should be required
+
+*Less is more. Less instructions means less bugs

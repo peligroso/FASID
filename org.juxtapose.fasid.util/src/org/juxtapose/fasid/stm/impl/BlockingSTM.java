@@ -93,7 +93,6 @@ public class BlockingSTM extends STM
 			if( existingData == null )
 			{
 				//data has been removed due to lack of interest, transaction is discarded
-				unlock( dataKey );
 				return;
 			}
 
@@ -101,12 +100,15 @@ public class BlockingSTM extends STM
 			{
 				logError( "Wrong version DataProducer tried to update data: "+dataKey );
 				//The producer for this data is of the wrong version, Transaction is discarded
-				unlock( dataKey );
 				return;
 			}
 
 			inTransaction.putInitDataState( existingData.getDataMap(), existingData.getStatus() );
 			inTransaction.execute();
+			if( inTransaction.isDisposed() )
+			{
+				return;
+			}
 			IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
 			Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
 

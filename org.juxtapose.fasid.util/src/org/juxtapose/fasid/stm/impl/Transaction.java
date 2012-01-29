@@ -43,6 +43,8 @@ public abstract class Transaction
 	
 	private Status status;
 	
+	private boolean disposed = false;
+	
 	/**
 	 * @param inDataKey
 	 */
@@ -191,5 +193,15 @@ public abstract class Transaction
 	public DataType<?> get( Integer inFieldKey )
 	{
 		return m_stateInstruction.valAt( inFieldKey );
+	}
+	
+	public void dispose()
+	{
+		disposed = true;
+	}
+	
+	public boolean isDisposed()
+	{
+		return disposed == true;
 	}
 }

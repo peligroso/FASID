@@ -31,8 +31,8 @@ public class MarketData extends DataProducerService implements IMarketDataServic
 				stm.logError( "Missing attribute for dataKey "+inQuery );
 				return null;
 			}
-			if( source.equals( MarketDataConstants.STATE_SOURCE_REUTERS ))
-				return ProducerUtil.createDataKey( getServiceId(), MarketDataConstants.STATE_TYPE_INSTRUMENT, new Integer[]{MarketDataConstants.FIELD_SOURCE, FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2, FXDataConstants.FIELD_PERIOD},new String[]{source, ccy1, ccy2, period} );
+			
+			return ProducerUtil.createDataKey( getServiceId(), MarketDataConstants.STATE_TYPE_INSTRUMENT, new Integer[]{MarketDataConstants.FIELD_SOURCE, FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2, FXDataConstants.FIELD_PERIOD},new String[]{source, ccy1, ccy2, period} );
 		}
 		return null;
 	}

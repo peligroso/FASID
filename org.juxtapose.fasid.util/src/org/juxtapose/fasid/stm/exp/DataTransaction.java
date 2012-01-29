@@ -51,5 +51,15 @@ public abstract class DataTransaction extends Transaction
 	{
 		return super.get( inFieldKey );
 	}
+	
+	public void dispose()
+	{
+		super.dispose();
+	}
+	
+	public boolean isDisposed()
+	{
+		return super.isDisposed();
+	}
 
 }
