@@ -1,6 +1,6 @@
-package org.juxtapose.fasid.stm.impl;
+package org.juxtapose.fasid.stm;
 
-import static org.juxtapose.fasid.stm.impl.STMUtil.PRODUCER_SERVICES;
+import static org.juxtapose.fasid.stm.STMUtil.PRODUCER_SERVICES;
 import static org.juxtapose.fasid.util.DataConstants.FIELD_QUERY_KEY;
 
 import java.util.HashMap;

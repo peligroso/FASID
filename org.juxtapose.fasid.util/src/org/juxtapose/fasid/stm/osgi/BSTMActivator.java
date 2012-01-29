@@ -4,8 +4,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.juxtapose.fasid.producer.executor.Executor;
-import org.juxtapose.fasid.stm.impl.BlockingSTM;
-import org.juxtapose.fasid.stm.impl.IPublishedDataFactory;
+import org.juxtapose.fasid.stm.BlockingSTM;
+import org.juxtapose.fasid.stm.IPublishedDataFactory;
 import org.osgi.service.component.ComponentContext;
 
 public class BSTMActivator extends BlockingSTM

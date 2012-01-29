@@ -1,6 +1,6 @@
 package org.juxtapose.fasid.producer;
 
-import org.juxtapose.fasid.stm.impl.ReferenceLink;
+import org.juxtapose.fasid.stm.ReferenceLink;
 import org.juxtapose.fasid.util.IPublishedData;
 
 public interface IDataProducer

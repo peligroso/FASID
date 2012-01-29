@@ -11,8 +11,8 @@ import java.util.Random;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.impl.DataTransaction;
-import org.juxtapose.fasid.stm.impl.ISTM;
+import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;

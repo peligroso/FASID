@@ -3,10 +3,10 @@ package org.juxtapose.fasid.producer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.juxtapose.fasid.stm.impl.DataTransaction;
-import org.juxtapose.fasid.stm.impl.ISTM;
-import org.juxtapose.fasid.stm.impl.ReferenceLink;
-import org.juxtapose.fasid.stm.impl.TemporaryController;
+import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.ISTM;
+import org.juxtapose.fasid.stm.ReferenceLink;
+import org.juxtapose.fasid.stm.TemporaryController;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;

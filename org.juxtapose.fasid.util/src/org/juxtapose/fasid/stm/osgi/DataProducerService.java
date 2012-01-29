@@ -1,7 +1,7 @@
 package org.juxtapose.fasid.stm.osgi;
 
 import org.juxtapose.fasid.producer.IDataProducerService;
-import org.juxtapose.fasid.stm.impl.ISTM;
+import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;

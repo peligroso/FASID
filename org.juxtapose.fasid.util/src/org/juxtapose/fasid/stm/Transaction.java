@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.stm.impl;
+package org.juxtapose.fasid.stm;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.stm.impl;
+package org.juxtapose.fasid.stm;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
