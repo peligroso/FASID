@@ -16,6 +16,7 @@ import javax.naming.InitialContext;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.DataTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.Status;
@@ -101,7 +102,7 @@ public class MarketDataProducer extends DataProducer
 								{
 									parseQuote( mess );
 								}
-							});
+							}, IExecutor.HIGH );
 						}
 					}
 

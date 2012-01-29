@@ -48,6 +48,6 @@ public class STMActivator extends NonBlockingSTM
 			}
 		}
 		
-		init( new Executor( 10, 10, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>() ));
+		init( new Executor( 5, 3, 2, 2 ));
 	}
 }

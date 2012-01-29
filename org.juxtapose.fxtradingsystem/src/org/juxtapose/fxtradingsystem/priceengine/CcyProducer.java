@@ -3,13 +3,11 @@ package org.juxtapose.fxtradingsystem.priceengine;
 import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.STATE_EUR;
 import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.STATE_USD;
 
-import java.util.List;
-
-import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.DataProducer;
+import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.DataTransaction;
 import org.juxtapose.fasid.stm.ISTM;
-import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeString;
@@ -37,28 +35,20 @@ public class CcyProducer extends DataProducer
 	@Override
 	public void start()
 	{
-		stm.execute( new Runnable()
+		stm.commit( new DataTransaction( dataKey.getKey(), CcyProducer.this )
 		{
 			@Override
-			public void run()
+			public void execute()
 			{
-				stm.commit( new DataTransaction( dataKey.getKey(), CcyProducer.this )
-				{
-					@Override
-					public void execute()
-					{
-						setStatus( Status.OK );
-						putValue(FXDataConstants.FIELD_PIP, new DataTypeLong(10000L) );
-						putValue(FXDataConstants.FIELD_DECIMALS, new DataTypeLong(5L) );
-						if( ccy.equals(STATE_EUR))
-							putValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_USD) );
-						else
-							putValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_EUR) );
-					}
-				});
+				setStatus( Status.OK );
+				putValue(FXDataConstants.FIELD_PIP, new DataTypeLong(10000L) );
+				putValue(FXDataConstants.FIELD_DECIMALS, new DataTypeLong(5L) );
+				if( ccy.equals(STATE_EUR))
+					putValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_USD) );
+				else
+					putValue(FXDataConstants.FIELD_BASE_CCY, new DataTypeString(STATE_EUR) );
 			}
 		});
-
 	}
 
 	@Override

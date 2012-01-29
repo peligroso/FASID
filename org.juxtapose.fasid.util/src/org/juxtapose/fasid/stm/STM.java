@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.juxtapose.fasid.producer.IDataKey;
@@ -184,30 +185,6 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.juxtapose.fasid.stm.exp.ISTM#execute(java.lang.Runnable)
-	 */
-	public void execute( Runnable inRunnable )
-	{
-		executor.execute( inRunnable );
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.juxtapose.fasid.stm.exp.ISTM#execute(java.lang.Runnable, java.lang.String)
-	 */
-	public void execute( Runnable inRunnable, String inSequenceKey )
-	{
-		executor.execute( inRunnable, inSequenceKey );
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.juxtapose.fasid.stm.exp.ISTM#execute(java.lang.Runnable, java.util.concurrent.locks.ReentrantLock)
-	 */
-	public void execute( Runnable inRunnable, ReentrantLock inSequenceLock )
-	{
-		executor.execute( inRunnable, inSequenceLock );
-	}
-	
-	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.stm.exp.ISTM#logInfo(java.lang.String)
 	 */
 	public void logInfo( String inMessage )
@@ -241,6 +218,30 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	public IPublishedData getData( String inKey )
 	{
 		return keyToData.get( inKey );
+	}
+	
+	@Override
+	public void execute(Runnable inRunnable, int inPrio)
+	{
+		executor.execute( inRunnable, inPrio );
+	}
+
+	@Override
+	public void execute(Runnable inRunnable, int inPrio, String inSequenceKey)
+	{
+		executor.execute( inRunnable, inPrio, inSequenceKey );
+	}
+
+	@Override
+	public void executeBlocking(Runnable inRunnable, int inPrio, ReentrantLock inSequenceLock)
+	{
+		executor.executeBlocking( inRunnable, inPrio, inSequenceLock );
+	}
+
+	@Override
+	public void scheduleExecution(Runnable inRunnable, int inPrio, long inTime, TimeUnit inTimeUnit)
+	{
+		executor.scheduleExecution( inRunnable, inPrio, inTime, inTimeUnit );
 	}
 	
 	public void addDataReferences( Integer inFieldKey, ReferenceLink inLink ){}

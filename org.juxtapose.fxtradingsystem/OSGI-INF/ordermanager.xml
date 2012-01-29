@@ -5,5 +5,5 @@
    <service>
       <provide interface="org.juxtapose.fxtradingsystem.ordermanager.IOrderManager"/>
    </service>
-   <reference bind="bindSTM" cardinality="1..1" interface="org.juxtapose.fasid.stm.exp.ISTM" name="ISTM" policy="static"/>
+   <reference bind="bindSTM" cardinality="1..1" interface="org.juxtapose.fasid.stm.ISTM" name="ISTM" policy="static"/>
 </scr:component>

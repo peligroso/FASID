@@ -39,7 +39,7 @@ public class BSTMActivator extends BlockingSTM
 				logError( e.getMessage() );
 			}
 		}
-		init( new Executor( 10, 10, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>() ));
+		init( new Executor( 5, 3, 2, 2 ));
 	}
 
 }

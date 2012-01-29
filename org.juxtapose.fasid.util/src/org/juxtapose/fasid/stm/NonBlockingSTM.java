@@ -109,7 +109,7 @@ public class NonBlockingSTM extends STM
 	}
 	
 	@Override
-	public void commit(Transaction inTransaction)
+	public void commit(DataTransaction inTransaction)
 	{
 		String dataKey = inTransaction.getDataKey();
 

@@ -2,7 +2,7 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.juxtapose.fxtradingsystem.stm">
    <implementation class="org.juxtapose.fasid.stm.osgi.BSTMActivator"/>
    <service>
-      <provide interface="org.juxtapose.fasid.stm.exp.ISTM"/>
+      <provide interface="org.juxtapose.fasid.stm.ISTM"/>
    </service>
-   <property name="PROP_DATA_FACTORY_CLASS" type="String" value="org.juxtapose.fasid.stm.impl.PublishedDataFactory"/>
+   <property name="PROP_DATA_FACTORY_CLASS" type="String" value="org.juxtapose.fasid.stm.PublishedDataFactory"/>
 </scr:component>

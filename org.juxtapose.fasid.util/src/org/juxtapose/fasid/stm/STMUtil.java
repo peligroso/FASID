@@ -20,7 +20,7 @@ public class STMUtil {
 	 * @param inTransaction
 	 * @return
 	 */
-	public static boolean validateProducerToData( IPublishedData inData, Transaction inTransaction )
+	public static boolean validateProducerToData( IPublishedData inData, DataTransaction inTransaction )
 	{
 		IDataProducer dataProd = inData.getProducer();
 		if( dataProd != null )
