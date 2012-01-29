@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.stm.exp;
+package org.juxtapose.fasid.stm.impl;
 
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -6,7 +6,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducerService;
-import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;

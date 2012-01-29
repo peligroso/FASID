@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.juxtapose.fasid.producer.DataProducer;
-import org.juxtapose.fasid.stm.exp.DataTransaction;
-import org.juxtapose.fasid.stm.exp.ISTM;
+import org.juxtapose.fasid.stm.impl.DataTransaction;
+import org.juxtapose.fasid.stm.impl.ISTM;
 import org.juxtapose.fasid.stm.impl.ReferenceLink;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;

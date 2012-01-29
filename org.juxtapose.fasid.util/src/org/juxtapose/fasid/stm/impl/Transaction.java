@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataProducer;
-import org.juxtapose.fasid.stm.exp.STMUtil;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeNull;

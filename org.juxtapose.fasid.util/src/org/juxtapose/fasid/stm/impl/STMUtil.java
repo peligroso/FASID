@@ -1,7 +1,6 @@
-package org.juxtapose.fasid.stm.exp;
+package org.juxtapose.fasid.stm.impl;
 
 import org.juxtapose.fasid.producer.IDataProducer;
-import org.juxtapose.fasid.stm.impl.Transaction;
 import org.juxtapose.fasid.util.IPublishedData;
 
 /**

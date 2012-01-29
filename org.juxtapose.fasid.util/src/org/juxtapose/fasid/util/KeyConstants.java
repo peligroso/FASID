@@ -4,7 +4,7 @@ import static org.juxtapose.fasid.util.producerservices.ProducerServiceConstants
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.ProducerUtil;
-import org.juxtapose.fasid.stm.exp.STMUtil;
+import org.juxtapose.fasid.stm.impl.STMUtil;
 
 public class KeyConstants
 {

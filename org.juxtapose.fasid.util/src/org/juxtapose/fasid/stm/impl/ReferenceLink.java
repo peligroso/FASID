@@ -1,7 +1,6 @@
 package org.juxtapose.fasid.stm.impl;
 
 import org.juxtapose.fasid.producer.IDataProducer;
-import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;

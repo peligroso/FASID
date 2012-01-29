@@ -1,6 +1,6 @@
 package org.juxtapose.fasid.stm.impl;
 
-import static org.juxtapose.fasid.stm.exp.STMUtil.PRODUCER_SERVICES;
+import static org.juxtapose.fasid.stm.impl.STMUtil.PRODUCER_SERVICES;
 import static org.juxtapose.fasid.util.DataConstants.FIELD_QUERY_KEY;
 
 import java.util.HashMap;
@@ -13,8 +13,6 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.producer.executor.IExecutor;
-import org.juxtapose.fasid.stm.exp.DataTransaction;
-import org.juxtapose.fasid.stm.exp.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.KeyConstants;

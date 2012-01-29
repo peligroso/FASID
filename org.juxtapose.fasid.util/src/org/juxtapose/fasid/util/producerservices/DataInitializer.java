@@ -3,7 +3,7 @@ package org.juxtapose.fasid.util.producerservices;
 import java.util.HashMap;
 
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.exp.ISTM;
+import org.juxtapose.fasid.stm.impl.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;

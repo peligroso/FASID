@@ -16,8 +16,8 @@ import javax.naming.InitialContext;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.exp.DataTransaction;
-import org.juxtapose.fasid.stm.exp.ISTM;
+import org.juxtapose.fasid.stm.impl.DataTransaction;
+import org.juxtapose.fasid.stm.impl.ISTM;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
 import org.juxtapose.fasid.util.data.DataTypeLong;
