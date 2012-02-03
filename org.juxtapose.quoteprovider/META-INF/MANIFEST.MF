@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Quoteprovider
+Bundle-SymbolicName: org.juxtapose.quoteprovider
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.juxtapose.quoteprovider.Activator
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: org.osgi.framework;version="1.3.0",
+ org.osgi.service.component;version="1.1.0"
+Export-Package: org.juxtapose.fxtradingsystem.quoteprovider
+Service-Component: OSGI-INF/BLOOMBERG.xml, OSGI-INF/REUTERS.xml
+Require-Bundle: org.eclipse.equinox.util;bundle-version="1.0.200",
+ org.eclipse.equinox.ds;bundle-version="1.2.1",
+ org.juxtapose.bundle.jms;bundle-version="1.0.0"

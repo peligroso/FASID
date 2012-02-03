@@ -1,7 +1,10 @@
-package org.juxtapose.fxtradingsystem.quoteprovider;
+package org.juxtapose.bundle.jms.message;
 
 public class QPMessage
 {
+	public static String RECIEVER_PREFIX = "SUBSCRIBE_";
+	public static String SENDER_PREFIX = "PUBLISH_";
+	
 	public static String SUBSCRIBE = "SUBSCRIBE";
 	public static String UNSUBSCRIBE = "UNSUBSCRIBE";
 	public static String QUOTE = "QUOTE";

@@ -13,7 +13,6 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
@@ -21,7 +20,7 @@ import javax.naming.InitialContext;
 
 import org.exolab.jms.administration.AdminConnectionFactory;
 import org.exolab.jms.administration.JmsAdminServerIfc;
-import org.exolab.jms.message.ObjectMessageImpl;
+import org.juxtapose.bundle.jms.message.QPMessage;
 
 
 
@@ -32,9 +31,6 @@ import org.exolab.jms.message.ObjectMessageImpl;
  */
 public class QuoteProvider extends QuoteProviderActivator
 {
-	public static String RECIEVER_PREFIX = "SUBSCRIBE_";
-	public static String SENDER_PREFIX = "PUBLISH_";
-	
 	private String name;
 	private String senderTopic;
 	private String recieverTopic;
@@ -42,40 +38,51 @@ public class QuoteProvider extends QuoteProviderActivator
 	List<QPMessage> subscribedInstruments = new Vector<QPMessage>();
 	
 	Random rand = new Random();
-	
+
 	public void init( String inName )
 	{
-		name = inName;
-		
-		senderTopic = SENDER_PREFIX+inName;
-		
-		recieverTopic = RECIEVER_PREFIX+inName;
-		
-		createDestination( recieverTopic );
-		createDestination( senderTopic );
-		
-		startReciever();
-		startSender();
-		
+		try
+		{
+			name = inName;
+
+			senderTopic = QPMessage.SENDER_PREFIX+inName;
+
+			recieverTopic = QPMessage.RECIEVER_PREFIX+inName;
+
+
+			String url = "tcp://localhost:3035/";
+			String user = "admin";
+			String password = "openjms";
+
+			JmsAdminServerIfc admin = AdminConnectionFactory.create(url, user, password);
+
+			createDestination( recieverTopic, admin );
+			createDestination( senderTopic, admin );
+
+			startReciever();
+			startSender();
+		}
+		catch (Exception e1)
+		{
+			e1.printStackTrace();
+		}
 	}
 
 	/**
 	 * @param inDestination
 	 */
-	private void createDestination( String inDestination )
-	{
-		 String url = "tcp://localhost:3035/";
-		 String user = "admin";
-		 String password = "openjms";
-		 
+	private void createDestination( String inDestination, JmsAdminServerIfc inAdmin )
+	{		 
 		 try
 		 {
-			 JmsAdminServerIfc admin = AdminConnectionFactory.create(url, user, password);
-
+			 inAdmin.removeDestination( inDestination );
+		 
 			 Boolean isQueue = Boolean.TRUE;
-			 if (!admin.addDestination(inDestination, isQueue)) {
+			 if (!inAdmin.addDestination(inDestination, isQueue)) {
 //				 System.err.println("Failed to create queue " + inDestination);
 			 }
+			 
+			 inAdmin.purgeMessages();
 		 } 
 		 catch (Exception e1)
 		 {
@@ -109,6 +116,7 @@ public class QuoteProvider extends QuoteProviderActivator
 
 					Destination destination = (Destination) context.lookup(senderTopic);
 					
+					
 					connection.start();
 				    MessageProducer sender = session.createProducer(destination);
 				    
@@ -124,7 +132,7 @@ public class QuoteProvider extends QuoteProviderActivator
 
 				    		sender.send(message);
 
-				    		int sleepTime = rand.nextInt( 1000 );
+				    		int sleepTime = rand.nextInt( 200 );
 				    		Thread.sleep( sleepTime );
 				    	}
 				    }

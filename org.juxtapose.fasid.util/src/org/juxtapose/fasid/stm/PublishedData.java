@@ -70,7 +70,7 @@ final class PublishedData implements IPublishedData
 	public IPublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = subscribers.assocN(subscribers.count(), inSubscriber );
-		return new PublishedData( dataMap, deltaMap, newSub, producer, status, sequenceID+1 );
+		return new PublishedData( dataMap, deltaMap, newSub, producer, status, sequenceID );
 	}
 	
 	/**
@@ -80,7 +80,7 @@ final class PublishedData implements IPublishedData
 	public IPublishedData removeSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = subscribers.cons( inSubscriber );
-		return new PublishedData( dataMap, deltaMap, newSub, producer, status, sequenceID+1 );
+		return new PublishedData( dataMap, deltaMap, newSub, producer, status, sequenceID );
 	}
 	
 	/**

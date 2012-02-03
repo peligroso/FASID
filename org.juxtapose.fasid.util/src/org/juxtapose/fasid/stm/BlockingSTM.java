@@ -2,12 +2,12 @@ package org.juxtapose.fasid.stm;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -113,7 +113,7 @@ public class BlockingSTM extends STM
 			Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
 
 			newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus() );
-
+			
 			keyToData.put( dataKey, newData );
 			
 			//Init reference links
@@ -173,6 +173,22 @@ public class BlockingSTM extends STM
 			unlock( dataKey );
 		}
 		
+		
+		if(dataKey.contains( "PRICE" ) )
+		{
+			try
+			{
+				Thread.sleep( new Random().nextInt( 500 ) );
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		if( newData != null )
+		{
+			newData.updateSubscribers( dataKey );
+		}
+		
 		for( ReferenceLink link : addedLinks )
 		{
 			link.init();
@@ -181,11 +197,6 @@ public class BlockingSTM extends STM
 		for( ReferenceLink link : removedLinks )
 		{
 			link.dispose();
-		}
-			
-		if( newData != null )
-		{
-			newData.updateSubscribers( dataKey );
 		}
 	}
 	
@@ -227,10 +238,10 @@ public class BlockingSTM extends STM
 		
 		unlock( inDataKey.getKey() );
 		
+		inSubscriber.updateData( inDataKey.getKey(), newData, true );
+		
 		if( producer != null )
 			producer.init();
-		
-		inSubscriber.updateData( inDataKey.getKey(), newData, true );
 	}
 
 	

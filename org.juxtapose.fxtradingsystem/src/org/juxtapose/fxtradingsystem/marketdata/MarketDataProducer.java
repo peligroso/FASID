@@ -14,6 +14,7 @@ import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.juxtapose.bundle.jms.message.QPMessage;
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.executor.IExecutor;
@@ -22,8 +23,6 @@ import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
 import org.juxtapose.fasid.util.data.DataTypeLong;
-import org.juxtapose.fxtradingsystem.quoteprovider.QPMessage;
-import org.juxtapose.fxtradingsystem.quoteprovider.QuoteProvider;
 
 /**
  * @author Pontus Jörgne
@@ -84,7 +83,7 @@ public class MarketDataProducer extends DataProducer
 
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-		Destination destination = (Destination) context.lookup(QuoteProvider.SENDER_PREFIX+source);
+		Destination destination = (Destination) context.lookup(QPMessage.SENDER_PREFIX+source);
 		MessageConsumer receiver = session.createConsumer(destination);
 		receiver.setMessageListener(new MessageListener() {
 			public void onMessage(Message message) {
@@ -132,7 +131,7 @@ public class MarketDataProducer extends DataProducer
 
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-		Destination destination = (Destination) context.lookup(QuoteProvider.RECIEVER_PREFIX+source);
+		Destination destination = (Destination) context.lookup(QPMessage.RECIEVER_PREFIX+source);
 
 		connection.start();
 		MessageProducer sender = session.createProducer(destination);
