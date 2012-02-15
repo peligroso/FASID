@@ -10,12 +10,14 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
+import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
+import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.subscriber.DataSequencer;
 import org.juxtapose.fasid.util.subscriber.ISequencedDataSubscriber;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
@@ -58,6 +60,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 					IDataKey dataKey = stm.getDataKey( FXProducerServiceConstants.PRICE_ENGINE, query );
 					priceKey = dataKey.getKey();
 
+//					stm.subscribeToData( dataKey, this );
 					new DataSequencer( this, stm, dataKey );
 				}
 			}
@@ -65,6 +68,10 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			{
 				System.out.println( "Price engine is not registered");
 			}
+		}
+		if( inKey.equals( priceKey ))
+		{
+			processData( inData );
 		}
 	}
 	
@@ -79,14 +86,26 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	{
 		IPublishedData data = inSequencer.get();
 		
-		Status status = data.getStatus();
+		processData( data );
+		
+	}
+	
+	private void processData( IPublishedData inData )
+	{
+		Status status = inData.getStatus();
 		if( status == Status.OK )
 		{
-			DataTypeBigDecimal bid = (DataTypeBigDecimal)data.getValue( FXDataConstants.FIELD_BID );
-			DataTypeBigDecimal ask = (DataTypeBigDecimal)data.getValue( FXDataConstants.FIELD_ASK );
-			DataTypeBigDecimal spread = (DataTypeBigDecimal)data.getValue( FXDataConstants.FIELD_SPREAD );
+			long now = System.nanoTime();
+			
+			DataTypeBigDecimal bid = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_BID );
+			DataTypeBigDecimal ask = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_ASK );
+			DataTypeBigDecimal spread = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_SPREAD );
+			
+			Long tou = (Long)inData.getValue( DataConstants.FIELD_TIMESTAMP ).get();
+			
+			long updateProcessingTime = now-tou;
 
-			long sequence = data.getSequenceID();
+			long sequence = inData.getSequenceID();
 
 			BigDecimal validateSpread = ask.get().subtract( bid.get() );
 			boolean valid = validateSpread.equals( spread.get() );
@@ -96,15 +115,14 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			}
 			else
 			{
-				System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence );
+				System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence+" updatetime: "+updateProcessingTime );
 			}
 		}
 		else
 		{
-			long sequence = data.getSequenceID();
-			System.out.println( "PriceStatus is "+status+" "+sequence+data.getDataMap() );
+			long sequence = inData.getSequenceID();
+			System.out.println( "PriceStatus is "+status+" "+sequence+inData.getDataMap() );
 		}
-		
 	}
 
 }

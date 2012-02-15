@@ -1,4 +1,4 @@
-package org.juxtapose.bundle.jms.message;
+package org.juxtapose.fxtradingsystem.marketdata;
 
 public class QPMessage
 {

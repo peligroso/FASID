@@ -92,7 +92,7 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 	@Override
 	public void updateData( String iKey, IPublishedData inData, boolean inFirstUpdate)
 	{
-		DataType<?> dataValue = inFirstUpdate ? inData.getValue( FXProducerServiceConstants.ORDER_MANAGER ) : inData.getDeltaValue( FXProducerServiceConstants.ORDER_MANAGER );
+		DataType<?> dataValue = inFirstUpdate ? inData.getValue( FXProducerServiceConstants.ORDER_MANAGER ) : inData.getValue( FXProducerServiceConstants.ORDER_MANAGER );
 		if( dataValue != null )
 		{
 			stm.logInfo( "OrderService is registered with status: "+dataValue);

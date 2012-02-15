@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="org.juxtapose.quoteprovider">
-   <implementation class="org.juxtapose.fxtradingsystem.quoteprovider.QuoteProvider"/>
-   <property name="NAME" type="String" value="REUTERS"/>
-   <service>
-      <provide interface="org.juxtapose.fxtradingsystem.quoteprovider.IQuoteProvider"/>
-   </service>
-</scr:component>

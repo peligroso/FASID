@@ -1,23 +1,7 @@
 package org.juxtapose.fxtradingsystem.marketdata;
 
-import java.util.Hashtable;
-
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-
-import org.juxtapose.bundle.jms.message.QPMessage;
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.DataTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.Status;
@@ -29,7 +13,7 @@ import org.juxtapose.fasid.util.data.DataTypeLong;
  * Jan 22, 2012
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class MarketDataProducer extends DataProducer
+public class MarketDataProducer extends DataProducer implements IMarketDataSubscriber
 {
 	final String source;
 	final String ccy1;
@@ -60,7 +44,7 @@ public class MarketDataProducer extends DataProducer
 		
 		try
 		{
-			startListener();
+//			startListener();
 			startSubscription();
 		}catch( Exception e )
 		{
@@ -68,81 +52,84 @@ public class MarketDataProducer extends DataProducer
 		}
 	}
 	
-	public void startListener( )throws Exception
-	{
-		Hashtable<String, String> properties = new Hashtable<String, String>();
-		properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.exolab.jms.jndi.InitialContextFactory");
-		properties.put(Context.PROVIDER_URL, "tcp://localhost:3035/");
-
-
-		Context context = new InitialContext(properties);
-
-		ConnectionFactory factory = (ConnectionFactory) context.lookup("ConnectionFactory");
-
-		Connection connection = factory.createConnection();
-
-		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-		Destination destination = (Destination) context.lookup(QPMessage.SENDER_PREFIX+source);
-		MessageConsumer receiver = session.createConsumer(destination);
-		receiver.setMessageListener(new MessageListener() {
-			public void onMessage(Message message) {
-				try
-				{
-					String textMess = ((TextMessage)message).getText();
-					final QPMessage mess = new QPMessage( textMess );
-					
-					if( mess.type.equals( QPMessage.QUOTE ) )
-					{
-						if( ccy1.equals(  mess.ccy1 ) && ccy2.equals( mess.ccy2 ) && period.equals( mess.period ))
-						{
-							stm.execute( new Runnable() {
-								public void run()
-								{
-									parseQuote( mess );
-								}
-							}, IExecutor.HIGH );
-						}
-					}
-
-				}catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-		});
-
-		// start the connection to enable message delivery
-		connection.start();
-	}
+//	public void startListener( )throws Exception
+//	{
+//		Hashtable<String, String> properties = new Hashtable<String, String>();
+//		properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.exolab.jms.jndi.InitialContextFactory");
+//		properties.put(Context.PROVIDER_URL, "tcp://localhost:3035/");
+//
+//
+//		Context context = new InitialContext(properties);
+//
+//		ConnectionFactory factory = (ConnectionFactory) context.lookup("ConnectionFactory");
+//
+//		Connection connection = factory.createConnection();
+//
+//		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+//
+//		Destination destination = (Destination) context.lookup(QPMessage.SENDER_PREFIX+source);
+//		MessageConsumer receiver = session.createConsumer(destination);
+//		receiver.setMessageListener(new MessageListener() {
+//			public void onMessage(Message message) {
+//				try
+//				{
+//					String textMess = ((TextMessage)message).getText();
+//					final QPMessage mess = new QPMessage( textMess );
+//					
+//					if( mess.type.equals( QPMessage.QUOTE ) )
+//					{
+//						if( ccy1.equals(  mess.ccy1 ) && ccy2.equals( mess.ccy2 ) && period.equals( mess.period ))
+//						{
+//							stm.execute( new Runnable() {
+//								public void run()
+//								{
+//									parseQuote( mess );
+//								}
+//							}, IExecutor.HIGH );
+//						}
+//					}
+//
+//				}catch (Exception e)
+//				{
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//
+//		// start the connection to enable message delivery
+//		connection.start();
+//	}
 	
 	public void startSubscription( ) throws Exception
 	{
-		Hashtable<String, String> properties = new Hashtable<String, String>();
-		properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.exolab.jms.jndi.InitialContextFactory");
-		properties.put(Context.PROVIDER_URL, "tcp://localhost:3035/");
-
-
-		Context context = new InitialContext(properties);
-
-		ConnectionFactory factory = (ConnectionFactory) context.lookup("ConnectionFactory");
-
-		Connection connection = factory.createConnection();
-
-		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-		Destination destination = (Destination) context.lookup(QPMessage.RECIEVER_PREFIX+source);
-
-		connection.start();
-		MessageProducer sender = session.createProducer(destination);
-
-		QPMessage subMessage = new QPMessage( QPMessage.SUBSCRIBE, ccy1, ccy2, period);//ccy1, ccy2, period);
-		TextMessage message = session.createTextMessage( subMessage.toString() );
-
-		sender.send(message);
-
-		session.close();
-		connection.close();
+		QPMessage subMessage = new QPMessage( QPMessage.SUBSCRIBE, ccy1, ccy2, period);
+		MarketDataSource.addSubscriber( this, subMessage, source );
+		
+//		Hashtable<String, String> properties = new Hashtable<String, String>();
+//		properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.exolab.jms.jndi.InitialContextFactory");
+//		properties.put(Context.PROVIDER_URL, "tcp://localhost:3035/");
+//
+//
+//		Context context = new InitialContext(properties);
+//
+//		ConnectionFactory factory = (ConnectionFactory) context.lookup("ConnectionFactory");
+//
+//		Connection connection = factory.createConnection();
+//
+//		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+//
+//		Destination destination = (Destination) context.lookup(QPMessage.RECIEVER_PREFIX+source);
+//
+//		connection.start();
+//		MessageProducer sender = session.createProducer(destination);
+//
+//		QPMessage subMessage = new QPMessage( QPMessage.SUBSCRIBE, ccy1, ccy2, period);//ccy1, ccy2, period);
+//		TextMessage message = session.createTextMessage( subMessage.toString() );
+//
+//		sender.send(message);
+//
+//		session.close();
+//		connection.close();
 
 	}
 	
@@ -169,6 +156,11 @@ public class MarketDataProducer extends DataProducer
 					setStatus( Status.OK );
 			}
 		});
+	}
+	@Override
+	public void marketDataUpdated(QPMessage inMessage)
+	{
+		parseQuote( inMessage );
 	}
 	
 }

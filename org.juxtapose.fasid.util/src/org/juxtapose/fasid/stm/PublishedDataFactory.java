@@ -1,7 +1,6 @@
 package org.juxtapose.fasid.stm;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.IDataSubscriber;
@@ -29,10 +28,9 @@ public class PublishedDataFactory implements IPublishedDataFactory
 	public IPublishedData createData( Status inStatus, IDataProducer inProducer )
 	{
 		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create();
-		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( );
 		
-		return new PublishedData( dataMap, deltaMap, subscribers, inProducer, inStatus, 0l );
+		return new PublishedData( dataMap, new HashSet<Integer>(), subscribers, inProducer, inStatus, 0l, true );
 	}
 	
 	/* (non-Javadoc)
@@ -41,9 +39,8 @@ public class PublishedDataFactory implements IPublishedDataFactory
 	public IPublishedData createData( Status inStatus, IDataProducer inProducer, IDataSubscriber inSubscriber )
 	{
 		IPersistentMap<Integer, DataType<?>> dataMap = PersistentHashMap.create( );
-		Map<Integer, DataType<?>> deltaMap = new HashMap<Integer, DataType<?>>();
 		IPersistentVector<IDataSubscriber> subscribers = PersistentVector.create( inSubscriber );
 		
-		return new PublishedData( dataMap, deltaMap, subscribers, inProducer, inStatus, 0l );
+		return new PublishedData( dataMap, new HashSet<Integer>(), subscribers, inProducer, inStatus, 0l, true );
 	}
 }

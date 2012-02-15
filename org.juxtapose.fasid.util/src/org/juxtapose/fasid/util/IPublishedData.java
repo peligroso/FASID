@@ -1,6 +1,6 @@
 package org.juxtapose.fasid.util;
 
-import java.util.Map;
+import java.util.Set;
 
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.data.DataType;
@@ -13,14 +13,16 @@ public interface IPublishedData {
 	public IDataProducer getProducer();
 	
 	public DataType<?> getValue( int inKey );
-	public DataType<?> getDeltaValue( int inKey );
+	public boolean isDeltaValue( int inKey );
 	public IPublishedData addSubscriber(IDataSubscriber inSubscriber);
 	public IPublishedData removeSubscriber(IDataSubscriber inSubscriber);
 	public boolean hasSubscribers();
 	public IPersistentMap<Integer, DataType<?>> getDataMap();
-	public IPublishedData setUpdatedData(IPersistentMap<Integer, DataType<?>> stateInstruction,Map<Integer, DataType<?>> deltaState, Status inStatus);
+	public IPublishedData setUpdatedData(IPersistentMap<Integer, DataType<?>> stateInstruction, Set<Integer> deltaState, Status inStatus, boolean completeUpdate);
 	public void updateSubscribers(String dataKey);
 	public IPublishedData putDataValue( Integer inKey, DataType<?> inValue )throws Exception;
 	public Status getStatus();
 	public long getSequenceID();
+	public boolean isCompleteVersion();
+	public Set<Integer> getDeltaSet();
 }

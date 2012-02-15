@@ -2,13 +2,14 @@ package org.juxtapose.fasid.stm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
-import org.juxtapose.fasid.util.data.DataTypeNull;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
 import com.trifork.clj_ds.IPersistentMap;
@@ -31,7 +32,7 @@ public abstract class DataTransaction
 	private String m_dataKey;	
 	private IPersistentMap<Integer, DataType<?>> m_stateInstruction;
 	
-	private Map<Integer, DataType<?>> m_deltaState = new HashMap<Integer, DataType<?>>();
+	private Set<Integer> m_deltaState = new HashSet<Integer>();
 	
 	private Map<Integer, DataTypeRef> addedDataReferences = new HashMap<Integer, DataTypeRef>();
 	private List<Integer> removedDataReferences = new ArrayList<Integer>();
@@ -41,6 +42,7 @@ public abstract class DataTransaction
 	private Status status;
 	
 	private boolean disposed = false;
+	private boolean m_inCompleteStateTransition = false;
 	
 	/**
 	 * @param inDataKey
@@ -82,7 +84,7 @@ public abstract class DataTransaction
 		assert !( inData instanceof DataTypeRef ) : "Reference values should be added via addReference method";
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inData );
-		m_deltaState.put(inKey, inData);
+		m_deltaState.add(inKey);
 	}
 	
 	/**
@@ -96,7 +98,7 @@ public abstract class DataTransaction
 		assert m_stateInstruction.valAt( inKey ) instanceof DataTypeRef : "Tried to update Reference that was not of reference type";
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataTypeRef );
-		m_deltaState.put(inKey, inDataTypeRef);
+		m_deltaState.add(inKey);
 	}
 	
 	/**
@@ -110,7 +112,7 @@ public abstract class DataTransaction
 		addedDataReferences.put( inKey, inDataRef );
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataRef );
-		m_deltaState.put(inKey, inDataRef);
+		m_deltaState.add(inKey);
 	}
 
 	/**
@@ -120,11 +122,13 @@ public abstract class DataTransaction
 	public void removeValue( Integer inKey )throws Exception
 	{
 		assert STMUtil.validateTransactionStack() : "Transaction.removeValue was not from called from within a STM commit as required";
-		assert m_deltaState.containsKey( inKey ) : "Transaction may not add and remove the same field value: "+inKey;
+		assert m_deltaState.contains( inKey ) : "Transaction may not add and remove the same field value: "+inKey;
 		
+		DataType<?> removedData = m_stateInstruction.valAt( inKey );
 		m_stateInstruction = m_stateInstruction.without( inKey );
 		
-		DataType<?> removedData = m_deltaState.put(inKey, new DataTypeNull( null ));
+		m_deltaState.add(inKey);
+		
 		
 		if( removedData instanceof DataTypeRef )
 		{
@@ -143,7 +147,7 @@ public abstract class DataTransaction
 	/**
 	 * @return
 	 */
-	protected Map<Integer, DataType<?>> getDeltaState()
+	protected Set<Integer> getDeltaState()
 	{
 		return m_deltaState;
 	}
@@ -200,5 +204,15 @@ public abstract class DataTransaction
 	public boolean isDisposed()
 	{
 		return disposed == true;
+	}
+	
+	public void setIncompleteStateTransition( )
+	{
+		m_inCompleteStateTransition = true;
+	}
+	
+	public boolean isCompleteStateTransition( )
+	{
+		return !m_inCompleteStateTransition;
 	}
 }

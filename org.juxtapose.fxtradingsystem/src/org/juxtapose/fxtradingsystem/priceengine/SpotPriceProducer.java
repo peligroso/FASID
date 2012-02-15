@@ -13,10 +13,12 @@ import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.stm.DataTransaction;
 import org.juxtapose.fasid.stm.ISTM;
+import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
+import org.juxtapose.fasid.util.data.DataTypeLong;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
@@ -119,7 +121,7 @@ public class SpotPriceProducer extends DataProducer implements IDataSubscriber
 	}
 
 	@Override
-	public void updateData(String inKey, IPublishedData inData, boolean inFirstUpdate)
+	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
 	{
 		if( inData.getStatus() == Status.OK )
 		{
@@ -152,6 +154,10 @@ public class SpotPriceProducer extends DataProducer implements IDataSubscriber
 					BigDecimal bid = (reutBidAsk[0].add( bloomBidAsk[0] )).divide( new BigDecimal( 2 ) ); 
 					BigDecimal ask = (reutBidAsk[1].add( bloomBidAsk[1] )).divide( new BigDecimal( 2 ) );
 					
+					DataTypeLong timeStamp = (DataTypeLong)inData.getValue( DataConstants.FIELD_TIMESTAMP );
+					
+					putValue( MarketDataConstants.FIELD_TIMESTAMP, timeStamp);
+					
 					bid = bid.round( new MathContext( dec.intValue(), RoundingMode.DOWN) );
 					ask = ask.round( new MathContext( dec.intValue(), RoundingMode.UP) );
 					
@@ -160,6 +166,7 @@ public class SpotPriceProducer extends DataProducer implements IDataSubscriber
 					putValue(FXDataConstants.FIELD_BID, new DataTypeBigDecimal( bid ) );
 					putValue(FXDataConstants.FIELD_ASK, new DataTypeBigDecimal( ask ) );
 					putValue(FXDataConstants.FIELD_SPREAD, spread );
+					
 				}
 			});
 		}

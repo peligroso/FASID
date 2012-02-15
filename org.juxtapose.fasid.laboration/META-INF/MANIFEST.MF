@@ -5,4 +5,5 @@ Bundle-SymbolicName: org.juxtapose.fasid.laboration
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.juxtapose.fasid;bundle-version="1.0.0"
+Export-Package: org.juxtapose.fasid.util.lock
 

@@ -1,7 +1,6 @@
 package org.juxtapose.fasid.stm;
 
 import java.util.HashMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;

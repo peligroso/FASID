@@ -12,7 +12,6 @@ Export-Package: com.trifork.clj_ds,
  org.juxtapose.fasid.stm.osgi,
  org.juxtapose.fasid.util,
  org.juxtapose.fasid.util.data,
- org.juxtapose.fasid.util.lock,
  org.juxtapose.fasid.util.producerservices,
  org.juxtapose.fasid.util.subscriber
 Import-Package: org.osgi.framework;version="1.5.0",

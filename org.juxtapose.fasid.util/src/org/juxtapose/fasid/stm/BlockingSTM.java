@@ -2,7 +2,7 @@ package org.juxtapose.fasid.stm;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -104,15 +104,21 @@ public class BlockingSTM extends STM
 			}
 
 			inTransaction.putInitDataState( existingData.getDataMap(), existingData.getStatus() );
+			
 			inTransaction.execute();
+			
 			if( inTransaction.isDisposed() )
 			{
 				return;
 			}
 			IPersistentMap<Integer, DataType<?>> inst = inTransaction.getStateInstruction();
-			Map<Integer, DataType<?>> delta = inTransaction.getDeltaState();
-
-			newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus() );
+			Set<Integer> delta = inTransaction.getDeltaState();
+			if( !existingData.isCompleteVersion() )
+			{
+				/**If previous update was a partial update we need to merge the deltas**/
+				delta.addAll( existingData.getDeltaSet() );
+			}
+			newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus(), inTransaction.isCompleteStateTransition() );
 			
 			keyToData.put( dataKey, newData );
 			
@@ -174,19 +180,13 @@ public class BlockingSTM extends STM
 		}
 		
 		
-		if(dataKey.contains( "PRICE" ) )
-		{
-			try
-			{
-				Thread.sleep( new Random().nextInt( 500 ) );
-			} catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-		}
 		if( newData != null )
 		{
-			newData.updateSubscribers( dataKey );
+			/**Incomplete stateTransition does not go out as an update to subscribers**/
+			if( inTransaction.isCompleteStateTransition() )
+			{
+				newData.updateSubscribers( dataKey );
+			}
 		}
 		
 		for( ReferenceLink link : addedLinks )

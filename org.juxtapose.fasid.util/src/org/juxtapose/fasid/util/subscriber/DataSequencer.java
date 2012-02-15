@@ -77,7 +77,6 @@ public class DataSequencer implements IDataSubscriber
 	 */
 	public void updateData(String inKey, IPublishedData inData, boolean inFirstUpdate)
 	{
-		System.out.println("Incomming update "+inData.getSequenceID());
 		Sequence syncObj = new Sequence( inData.getSequenceID(), inData, Sequence.TYPE_OBJ);
 
 		Sequence poleObj = polePosition.get();
@@ -103,7 +102,6 @@ public class DataSequencer implements IDataSubscriber
 				}
 				else
 				{
-					System.err.println("object "+syncObj.id+" not in turn, put on queue, waiting for: "+poleObj.id+" type "+poleObj.type);
 					queue.put( syncObj.id, syncObj );
 				}
 			}while( polePosition.get() != poleObj );

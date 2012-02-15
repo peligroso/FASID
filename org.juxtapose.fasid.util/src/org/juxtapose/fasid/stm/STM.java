@@ -5,7 +5,6 @@ import static org.juxtapose.fasid.util.DataConstants.FIELD_QUERY_KEY;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -18,7 +17,6 @@ import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
-import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fasid.util.producerservices.ProducerServiceConstants;
 

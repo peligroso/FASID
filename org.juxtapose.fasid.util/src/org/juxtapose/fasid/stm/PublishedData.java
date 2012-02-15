@@ -2,7 +2,7 @@ package org.juxtapose.fasid.stm;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.IDataSubscriber;
@@ -27,7 +27,7 @@ import com.trifork.clj_ds.IPersistentVector;
 final class PublishedData implements IPublishedData
 {
 	final IPersistentMap<Integer, DataType<?>> dataMap;
-	final Map<Integer, DataType<?>> deltaMap;
+	final Set<Integer> deltaSet;
 	
 	final IPersistentVector<IDataSubscriber> subscribers;
 	
@@ -37,6 +37,8 @@ final class PublishedData implements IPublishedData
 	
 	final long sequenceID;
 	
+	final boolean completeVersion;
+	
 	/**
 	 * @param inData
 	 * @param inLastUpdate
@@ -44,14 +46,15 @@ final class PublishedData implements IPublishedData
 	 * @param inProducer
 	 * @param inStatus
 	 */
-	PublishedData( IPersistentMap<Integer, DataType<?>> inData, Map<Integer, DataType<?>> inLastUpdate, IPersistentVector<IDataSubscriber> inSubscribers, IDataProducer inProducer, Status inStatus, long inSequenceID ) 
+	PublishedData( IPersistentMap<Integer, DataType<?>> inData, Set<Integer> inChanges, IPersistentVector<IDataSubscriber> inSubscribers, IDataProducer inProducer, Status inStatus, long inSequenceID, boolean inCompleteUpdate ) 
 	{
 		dataMap = inData;
-		deltaMap = Collections.unmodifiableMap( inLastUpdate );
+		deltaSet = Collections.unmodifiableSet( inChanges );
 		subscribers = inSubscribers;
 		producer = inProducer;
 		status = inStatus;
 		sequenceID = inSequenceID;
+		completeVersion = inCompleteUpdate;
 	}
 	
 	public void updateSubscribers( String inKey )
@@ -70,7 +73,7 @@ final class PublishedData implements IPublishedData
 	public IPublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = subscribers.assocN(subscribers.count(), inSubscriber );
-		return new PublishedData( dataMap, deltaMap, newSub, producer, status, sequenceID );
+		return new PublishedData( dataMap, deltaSet, newSub, producer, status, sequenceID, completeVersion );
 	}
 	
 	/**
@@ -80,7 +83,7 @@ final class PublishedData implements IPublishedData
 	public IPublishedData removeSubscriber( IDataSubscriber inSubscriber )
 	{
 		IPersistentVector<IDataSubscriber> newSub = subscribers.cons( inSubscriber );
-		return new PublishedData( dataMap, deltaMap, newSub, producer, status, sequenceID );
+		return new PublishedData( dataMap, deltaSet, newSub, producer, status, sequenceID, completeVersion );
 	}
 	
 	/**
@@ -106,7 +109,7 @@ final class PublishedData implements IPublishedData
 		else
 			newMap = dataMap.assoc( inKey, inValue );
 		
-		return new PublishedData( newMap, deltaMap, subscribers, producer, status, sequenceID+1 );
+		return new PublishedData( newMap, deltaSet, subscribers, producer, status, sequenceID+1, completeVersion );
 	}
 	
 	/**
@@ -133,7 +136,7 @@ final class PublishedData implements IPublishedData
 			}
 		}
 		
-		return new PublishedData( newDataMap, deltaMap, subscribers, producer, status, sequenceID+1 );
+		return new PublishedData( newDataMap, deltaSet, subscribers, producer, status, sequenceID+1, completeVersion );
 	}
 	
 	/**
@@ -142,18 +145,23 @@ final class PublishedData implements IPublishedData
 	 */
 	public IPublishedData setDataMap( IPersistentMap<Integer, DataType<?>> inDataMap )
 	{
-		return new PublishedData( inDataMap, deltaMap, subscribers, producer, status, sequenceID+1 );
+		return new PublishedData( inDataMap, deltaSet, subscribers, producer, status, sequenceID+1, completeVersion );
 	}
 	
 	/**
 	 * @param inDataMap
 	 * @return
 	 */
-	public IPublishedData setUpdatedData( IPersistentMap<Integer, DataType<?>> inDataMap, Map<Integer, DataType<?>> inDeltaMap, Status inStatus )
+	public IPublishedData setUpdatedData( IPersistentMap<Integer, DataType<?>> inDataMap, Set<Integer> inDelta, Status inStatus, boolean inCompleteUpdate )
 	{
-		return new PublishedData( inDataMap, inDeltaMap, subscribers, producer, inStatus, sequenceID+1 );
+		return new PublishedData( inDataMap, inDelta, subscribers, producer, inStatus, (inCompleteUpdate ? sequenceID+1 : sequenceID), inCompleteUpdate );
 	}
 	
+	public boolean isCompleteVersion()
+	{
+		return completeVersion;
+	}
+
 	
 	/**
 	 * @return
@@ -166,9 +174,9 @@ final class PublishedData implements IPublishedData
 	/**
 	 * @return
 	 */
-	public Map<Integer, DataType<?>> getDeltaMap()
+	public Set<Integer> getDeltaSet()
 	{
-		return deltaMap;
+		return deltaSet;
 	}
 	
 	public IDataProducer getProducer()
@@ -186,9 +194,9 @@ final class PublishedData implements IPublishedData
 	}
 
 	@Override
-	public DataType<?> getDeltaValue(int inKey)
+	public boolean isDeltaValue(int inKey)
 	{
-		return deltaMap.get( inKey );
+		return deltaSet.contains( inKey );
 	}
 	
 	public Status getStatus()

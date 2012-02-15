@@ -1,4 +1,4 @@
-package org.juxtapose.fasid.util;
+package org.juxtapose.fasid.laboration.prime;
 
 public class PrimeGenerator
 {
