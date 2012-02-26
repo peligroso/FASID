@@ -5,7 +5,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
@@ -32,7 +32,7 @@ public class SpotPriceProducer2 extends MultipleSourcedPrice implements IDataSub
 	
 	public void linkStaticData()
 	{
-		stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer2.this, 1, 0 )
+		stm.commit( new STMTransaction( dataKey.getKey(), SpotPriceProducer2.this, 1, 0 )
 		{
 			@Override
 			public void execute()
@@ -49,7 +49,7 @@ public class SpotPriceProducer2 extends MultipleSourcedPrice implements IDataSub
 	}
 
 	@Override
-	protected void processBidAsk(BigDecimal inBid, BigDecimal inAsk, DataTransaction inTransaction)
+	protected void processBidAsk(BigDecimal inBid, BigDecimal inAsk, STMTransaction inTransaction)
 	{
 		DataTypeRef ref = (DataTypeRef)inTransaction.get( PriceEngineDataConstants.FIELD_STATIC_DATA );
 		

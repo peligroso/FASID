@@ -1,6 +1,6 @@
 package org.juxtapose.bundle.stmtest;
 
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 
 
 public class TransactionCommit 

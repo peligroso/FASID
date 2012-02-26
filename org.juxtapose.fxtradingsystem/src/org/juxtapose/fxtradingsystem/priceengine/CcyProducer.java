@@ -6,7 +6,7 @@ import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.executor.IExecutor;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataTypeLong;
@@ -35,7 +35,7 @@ public class CcyProducer extends DataProducer
 	@Override
 	public void start()
 	{
-		stm.commit( new DataTransaction( dataKey.getKey(), CcyProducer.this, 0, 0 )
+		stm.commit( new STMTransaction( dataKey.getKey(), CcyProducer.this, 0, 0 )
 		{
 			@Override
 			public void execute()

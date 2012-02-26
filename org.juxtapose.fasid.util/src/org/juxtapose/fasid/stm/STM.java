@@ -58,7 +58,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		Integer id = inProducerService.getServiceId();
 		idToProducerService.put( id, inProducerService );
 		
-		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this, 0, 0 )
+		commit( new STMTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this, 0, 0 )
 		{
 			@Override
 			public void execute()
@@ -74,7 +74,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	 */
 	public void updateProducerStatus( final IDataProducerService inProducerService, final Status initState )
 	{
-		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this, 0, 0 )
+		commit( new STMTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this, 0, 0 )
 		{
 			@Override
 			public void execute()

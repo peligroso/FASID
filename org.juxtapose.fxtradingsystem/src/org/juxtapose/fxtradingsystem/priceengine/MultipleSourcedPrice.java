@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
@@ -91,7 +91,7 @@ public abstract class MultipleSourcedPrice extends DataProducer implements IData
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new DataTransaction( dataKey.getKey(), MultipleSourcedPrice.this, 0, 0 )
+			stm.commit( new STMTransaction( dataKey.getKey(), MultipleSourcedPrice.this, 0, 0 )
 			{
 				@Override
 				public void execute()
@@ -136,7 +136,7 @@ public abstract class MultipleSourcedPrice extends DataProducer implements IData
 		stm.unsubscribeToData( bloombergDataKey, this );
 	}
 	
-	protected abstract void processBidAsk( BigDecimal inBid, BigDecimal inAsk, DataTransaction inTransaction );
+	protected abstract void processBidAsk( BigDecimal inBid, BigDecimal inAsk, STMTransaction inTransaction );
 	
 
 }

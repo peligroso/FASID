@@ -16,7 +16,7 @@ public interface ISTM extends IExecutor
 	public void registerProducer( final IDataProducerService inProducerService, final Status initState );
 	public void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber );
 	public void unsubscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber );
-	public void commit( DataTransaction inTransaction );
+	public void commit( STMTransaction inTransaction );
 	public void getDataKey(Integer inProducerService, IDataRequestSubscriber inSubscriber, Long inTag, HashMap<Integer, String> inQuery);
 	public void logInfo( String inMessage );
 	public void logError( String inMessage );

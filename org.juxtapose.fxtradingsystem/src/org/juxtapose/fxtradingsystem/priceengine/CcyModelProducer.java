@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.juxtapose.fasid.producer.DataProducer;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.stm.ReferenceLink;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -32,7 +32,7 @@ public class CcyModelProducer extends DataProducer
 	@Override
 	public void start()
 	{
-		stm.commit( new DataTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey(), CcyModelProducer.this, 2, 0 )
+		stm.commit( new STMTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey(), CcyModelProducer.this, 2, 0 )
 		{
 			@Override
 			public void execute()
@@ -95,7 +95,7 @@ public class CcyModelProducer extends DataProducer
 					}
 				}
 				
-				stm.commit( new DataTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey(), CcyModelProducer.this, 0, 0 )
+				stm.commit( new STMTransaction( PriceEngineKeyConstants.CCY_MODEL_KEY.getKey(), CcyModelProducer.this, 0, 0 )
 				{
 					@Override
 					public void execute()

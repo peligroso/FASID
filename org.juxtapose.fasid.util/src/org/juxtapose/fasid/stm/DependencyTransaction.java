@@ -12,7 +12,7 @@ import java.util.List;
  * Temporary controllers is usually subscription type objects that needs synchronized start/stop.
  * To add STM dependencies, the class DataProducedDependencyController should be used.
  */
-public abstract class DependencyTransaction extends DataTransaction
+public abstract class DependencyTransaction extends STMTransaction
 {
 	private final HashMap<String, TemporaryController> addedDependencies;
 	private final List<String> removedDependencies;

@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
@@ -90,7 +90,7 @@ public class SwapPriceProducer  extends DataProducer implements IDataRequestSubs
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new DataTransaction( dataKey.getKey(), SwapPriceProducer.this, 0, 0 )
+			stm.commit( new STMTransaction( dataKey.getKey(), SwapPriceProducer.this, 0, 0 )
 			{
 				@Override
 				public void execute()

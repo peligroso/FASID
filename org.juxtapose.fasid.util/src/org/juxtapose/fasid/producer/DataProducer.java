@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.juxtapose.fasid.stm.DataProducerDependencyController;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.stm.ReferenceLink;
 import org.juxtapose.fasid.stm.TemporaryController;
@@ -128,7 +128,7 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 	 */
 	public void referencedDataUpdated( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData )
 	{
-		stm.commit( new DataTransaction( dataKey.getKey(), this, 0, 0 )
+		stm.commit( new STMTransaction( dataKey.getKey(), this, 0, 0 )
 		{
 			@Override
 			public void execute()
@@ -162,7 +162,7 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 	 * @param inTransaction
 	 * To be overridden by subclasses that to continue the work on a transaction after the referenced Data has been updated
 	 */
-	protected void referenceDataCall( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData, DataTransaction inTransaction )
+	protected void referenceDataCall( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData, STMTransaction inTransaction )
 	{
 		
 	}
@@ -180,7 +180,7 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 	
 	protected void setStatus( final Status inStatus )
 	{
-		stm.commit( new DataTransaction( dataKey.getKey(), DataProducer.this, 0, 0 )
+		stm.commit( new STMTransaction( dataKey.getKey(), DataProducer.this, 0, 0 )
 		{
 			@Override
 			public void execute()

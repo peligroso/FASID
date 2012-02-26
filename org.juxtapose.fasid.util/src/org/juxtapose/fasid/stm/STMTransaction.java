@@ -27,7 +27,7 @@ import com.trifork.clj_ds.IPersistentMap;
  * 
  * Transactions only live inside one thread and should always be declared anonymous. 
  */
-public abstract class DataTransaction
+public abstract class STMTransaction
 {
 	private final String m_dataKey;	
 	private IPersistentMap<Integer, DataType<?>> m_stateInstruction;
@@ -49,7 +49,7 @@ public abstract class DataTransaction
 	/**
 	 * @param inDataKey
 	 */
-	public DataTransaction( String inDataKey, int inAddedRefenrence, int inRemovedReferences ) 
+	public STMTransaction( String inDataKey, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
 		addedDataReferences = new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
@@ -60,7 +60,7 @@ public abstract class DataTransaction
 	 * @param inDataKey
 	 * @param inProducer
 	 */
-	public DataTransaction( String inDataKey, IDataProducer inProducer, int inAddedRefenrence, int inRemovedReferences ) 
+	public STMTransaction( String inDataKey, IDataProducer inProducer, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
 		m_producer = inProducer;

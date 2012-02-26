@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -72,7 +72,7 @@ public class FwdPriceProducer extends DataProducer implements IDataRequestSubscr
 		
 		if( swapDataKey != null && spotDataKey != null )
 		{
-			stm.commit( new DataTransaction( dataKey.getKey(), FwdPriceProducer.this, 2, 0 )
+			stm.commit( new STMTransaction( dataKey.getKey(), FwdPriceProducer.this, 2, 0 )
 			{
 				@Override
 				public void execute()

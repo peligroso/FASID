@@ -76,7 +76,7 @@ public class BlockingSTM extends STM
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.stm.impl.STM#commit(org.juxtapose.fasid.stm.impl.Transaction)
 	 */
-	public void commit( DataTransaction inTransaction )
+	public void commit( STMTransaction inTransaction )
 	{	
 		String dataKey = inTransaction.getDataKey();
 		

@@ -11,7 +11,7 @@ import java.util.Random;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
-import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
@@ -55,7 +55,7 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 
 	public void linkStaticData()
 	{
-		stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this, 1, 0 )
+		stm.commit( new STMTransaction( dataKey.getKey(), SpotPriceProducer.this, 1, 0 )
 		{
 			@Override
 			public void execute()
@@ -92,7 +92,7 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 	 * @param inRand
 	 * @param inTransaction
 	 */
-	public void addPriceUpdate( final Random inRand, DataTransaction inTransaction )
+	public void addPriceUpdate( final Random inRand, STMTransaction inTransaction )
 	{
 		DataTypeBigDecimal bid = new DataTypeBigDecimal( inRand.nextDouble() );
 		DataTypeBigDecimal ask = new DataTypeBigDecimal( inRand.nextDouble() );
@@ -121,7 +121,7 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this, 0, 0 )
+			stm.commit( new STMTransaction( dataKey.getKey(), SpotPriceProducer.this, 0, 0 )
 			{
 				@Override
 				public void execute()
