@@ -11,7 +11,9 @@ import java.util.Random;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.stm.DataProducerDependencyController;
 import org.juxtapose.fasid.stm.DataTransaction;
+import org.juxtapose.fasid.stm.DependencyTransaction;
 import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
@@ -175,14 +177,25 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 		if( inTag == reutersTag )
 		{
 			reutersDataKey = inDataKey;
-			stm.subscribeToData( reutersDataKey, this );
 		}
 		else if( inTag == bloombergTag )
 		{
 			bloombergDataKey = inDataKey;
-			stm.subscribeToData( bloombergDataKey, this );
 		}
 		
+		if( reutersDataKey != null && bloombergDataKey != null )
+		{
+			stm.commit( new DependencyTransaction( dataKey.getKey(), SpotPriceProducer.this, 2, 0 )
+			{
+
+				@Override
+				public void execute()
+				{
+					addDependency( reutersDataKey.getKey(), new DataProducerDependencyController( SpotPriceProducer.this, stm, reutersDataKey ) );
+					addDependency( bloombergDataKey.getKey(), new DataProducerDependencyController( SpotPriceProducer.this, stm, bloombergDataKey ) );
+				}
+			});
+		}
 	}
 
 	@Override
