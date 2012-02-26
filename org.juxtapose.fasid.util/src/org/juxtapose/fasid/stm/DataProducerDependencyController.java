@@ -17,7 +17,7 @@ public class DataProducerDependencyController extends TemporaryController implem
 	 * @param inHashKey
 	 * @param inRef
 	 */
-	public DataProducerDependencyController( IDataProducer inProducer, ISTM inSTM, Integer inHashKey, IDataKey inKey )
+	public DataProducerDependencyController( IDataProducer inProducer, ISTM inSTM, IDataKey inKey )
 	{
 		stm = inSTM;
 		key = inKey;

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.juxtapose.fasid.producer.IDataProducer;
+
 /**
  * @author Pontus Jörgne
  * Feb 26, 2012
@@ -17,9 +19,9 @@ public abstract class DependencyTransaction extends STMTransaction
 	private final HashMap<String, TemporaryController> addedDependencies;
 	private final List<String> removedDependencies;
 	
-	public DependencyTransaction(String inDataKey, int inAddedDependencies, int inRemovedDependencies)
+	public DependencyTransaction(String inDataKey, IDataProducer inProducer, int inAddedDependencies, int inRemovedDependencies)
 	{
-		super( inDataKey, 8, 8 );
+		super( inDataKey, inProducer, 8, 8 );
 		addedDependencies = new HashMap<String, TemporaryController>(inAddedDependencies);
 		removedDependencies = new ArrayList<String>( inRemovedDependencies );
 	}

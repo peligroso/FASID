@@ -26,7 +26,7 @@ public class ReferenceLink extends DataProducerDependencyController implements I
 	 */
 	public ReferenceLink( IDataProducer inProducer, ISTM inSTM, Integer inHashKey, DataTypeRef inRef )
 	{
-		super( inProducer, inSTM, inHashKey, inRef.get() );
+		super( inProducer, inSTM, inRef.get() );
 		hashKey = inHashKey;
 		ref = inRef;
 	}
