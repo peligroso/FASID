@@ -58,7 +58,7 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 
 	public void linkStaticData()
 	{
-		stm.commit( new STMTransaction( dataKey.getKey(), SpotPriceProducer.this, 1, 0 )
+		stm.commit( new STMTransaction( dataKey, SpotPriceProducer.this, 1, 0 )
 		{
 			@Override
 			public void execute()
@@ -110,14 +110,14 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 
 
 	@Override
-	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, final IPublishedData inData, boolean inFirstUpdate )
 	{
 		if( reutersDataKey == null || bloombergDataKey == null )
 			return;
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this )
+			stm.commit( new DataTransaction( dataKey, SpotPriceProducer.this )
 			{
 				@Override
 				public void execute()
@@ -178,7 +178,7 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 		
 		if( reutersDataKey != null && bloombergDataKey != null )
 		{
-			stm.commit( new DependencyTransaction( dataKey.getKey(), SpotPriceProducer.this, 2, 0 )
+			stm.commit( new DependencyTransaction( dataKey, SpotPriceProducer.this, 2, 0 )
 			{
 
 				@Override

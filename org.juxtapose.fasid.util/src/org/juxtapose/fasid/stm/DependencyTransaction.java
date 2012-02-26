@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 
 /**
@@ -19,7 +20,7 @@ public abstract class DependencyTransaction extends STMTransaction
 	private final HashMap<String, TemporaryController> addedDependencies;
 	private final List<String> removedDependencies;
 	
-	public DependencyTransaction(String inDataKey, IDataProducer inProducer, int inAddedDependencies, int inRemovedDependencies)
+	public DependencyTransaction( IDataKey inDataKey, IDataProducer inProducer, int inAddedDependencies, int inRemovedDependencies )
 	{
 		super( inDataKey, inProducer, 8, 8 );
 		addedDependencies = new HashMap<String, TemporaryController>(inAddedDependencies);

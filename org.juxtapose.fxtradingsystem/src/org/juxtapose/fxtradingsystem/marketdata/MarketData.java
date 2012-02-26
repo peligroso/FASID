@@ -58,7 +58,7 @@ public class MarketData extends DataProducerService implements IMarketDataServic
 	}
 
 	@Override
-	public void updateData(String inKey, IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
 		// TODO Auto-generated method stub
 

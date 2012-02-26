@@ -52,7 +52,7 @@ public class FwdPriceProducer extends DataProducer implements IDataRequestSubscr
 	}
 
 	@Override
-	public void updateData(String inKey, IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
 		// TODO Auto-generated method stub
 		
@@ -72,7 +72,7 @@ public class FwdPriceProducer extends DataProducer implements IDataRequestSubscr
 		
 		if( swapDataKey != null && spotDataKey != null )
 		{
-			stm.commit( new STMTransaction( dataKey.getKey(), FwdPriceProducer.this, 2, 0 )
+			stm.commit( new STMTransaction( dataKey, FwdPriceProducer.this, 2, 0 )
 			{
 				@Override
 				public void execute()

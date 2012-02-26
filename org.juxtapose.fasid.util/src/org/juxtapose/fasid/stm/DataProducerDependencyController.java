@@ -30,7 +30,7 @@ public class DataProducerDependencyController extends TemporaryController implem
 	}
 	
 	@Override
-	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	public void updateData(IDataKey inKey, final IPublishedData inData, boolean inFirstUpdate)
 	{
 		parentProducer.updateData( inKey, inData, inFirstUpdate );
 	}

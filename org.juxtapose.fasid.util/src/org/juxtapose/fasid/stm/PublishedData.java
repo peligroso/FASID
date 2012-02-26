@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -59,7 +60,7 @@ final class PublishedData implements IPublishedData
 		completeVersion = inCompleteUpdate;
 	}
 	
-	public void updateSubscribers( String inKey )
+	public void updateSubscribers( IDataKey inKey )
 	{
 		for( int i = 0; i < subscribers.length(); i++ )
 		{

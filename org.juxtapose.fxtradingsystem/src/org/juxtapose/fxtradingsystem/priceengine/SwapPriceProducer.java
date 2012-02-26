@@ -83,14 +83,14 @@ public class SwapPriceProducer  extends DataProducer implements IDataRequestSubs
 	}
 
 	@Override
-	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, final IPublishedData inData, boolean inFirstUpdate )
 	{
 		if( reutersDataKey == null || bloombergDataKey == null )
 			return;
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new DataTransaction( dataKey.getKey(), SwapPriceProducer.this )
+			stm.commit( new DataTransaction( dataKey, SwapPriceProducer.this )
 			{
 				@Override
 				public void execute()

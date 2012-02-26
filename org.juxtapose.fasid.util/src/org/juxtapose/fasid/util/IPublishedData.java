@@ -2,6 +2,7 @@ package org.juxtapose.fasid.util;
 
 import java.util.Set;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.data.DataType;
 
@@ -19,7 +20,7 @@ public interface IPublishedData {
 	public boolean hasSubscribers();
 	public IPersistentMap<Integer, DataType<?>> getDataMap();
 	public IPublishedData setUpdatedData(IPersistentMap<Integer, DataType<?>> stateInstruction, Set<Integer> deltaState, Status inStatus, boolean completeUpdate);
-	public void updateSubscribers(String dataKey);
+	public void updateSubscribers(IDataKey dataKey);
 	public IPublishedData putDataValue( Integer inKey, DataType<?> inValue )throws Exception;
 	public Status getStatus();
 	public long getSequenceID();

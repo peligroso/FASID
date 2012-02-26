@@ -84,14 +84,14 @@ public abstract class MultipleSourcedPrice extends DataProducer implements IData
 	}
 
 	@Override
-	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, final IPublishedData inData, boolean inFirstUpdate )
 	{
 		if( reutersDataKey == null || bloombergDataKey == null )
 			return;
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new STMTransaction( dataKey.getKey(), MultipleSourcedPrice.this, 0, 0 )
+			stm.commit( new STMTransaction( dataKey, MultipleSourcedPrice.this, 0, 0 )
 			{
 				@Override
 				public void execute()

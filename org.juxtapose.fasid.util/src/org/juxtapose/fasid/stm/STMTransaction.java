@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
@@ -29,7 +30,7 @@ import com.trifork.clj_ds.IPersistentMap;
  */
 public abstract class STMTransaction
 {
-	private final String m_dataKey;	
+	private final IDataKey m_dataKey;	
 	private IPersistentMap<Integer, DataType<?>> m_stateInstruction;
 	
 	private final Set<Integer> m_deltaState = new HashSet<Integer>();
@@ -49,14 +50,14 @@ public abstract class STMTransaction
 	/**
 	 * @param inDataKey
 	 */
-	public STMTransaction( String inDataKey, int inAddedRefenrence, int inRemovedReferences ) 
+	public STMTransaction( IDataKey inDataKey, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
 		addedDataReferences = inAddedRefenrence == 0 ? null : new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
 		removedDataReferences = inRemovedReferences == 0 ? null : new ArrayList<Integer>( inRemovedReferences );
 	}
 	
-	public STMTransaction( String inDataKey ) 
+	public STMTransaction( IDataKey inDataKey ) 
 	{
 		m_dataKey = inDataKey;
 		addedDataReferences = new HashMap<Integer, DataTypeRef>( 8 );
@@ -67,7 +68,7 @@ public abstract class STMTransaction
 	 * @param inDataKey
 	 * @param inProducer
 	 */
-	public STMTransaction( String inDataKey, IDataProducer inProducer, int inAddedRefenrence, int inRemovedReferences ) 
+	public STMTransaction( IDataKey inDataKey, IDataProducer inProducer, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
 		m_producer = inProducer;
@@ -80,7 +81,7 @@ public abstract class STMTransaction
 	 * @param inDataKey
 	 * @param inProducer
 	 */
-	public STMTransaction( String inDataKey, IDataProducer inProducer ) 
+	public STMTransaction( IDataKey inDataKey, IDataProducer inProducer ) 
 	{
 		m_dataKey = inDataKey;
 		m_producer = inProducer;
@@ -186,7 +187,7 @@ public abstract class STMTransaction
 	/**
 	 * @return
 	 */
-	protected String getDataKey()
+	protected IDataKey getDataKey()
 	{
 		return m_dataKey;
 	}

@@ -78,7 +78,7 @@ public class BlockingSTM extends STM
 	 */
 	public void commit( STMTransaction inTransaction )
 	{	
-		String dataKey = inTransaction.getDataKey();
+		IDataKey dataKey = inTransaction.getDataKey();
 		
 		IPublishedData newData = null;
 		
@@ -86,11 +86,11 @@ public class BlockingSTM extends STM
 		ReferenceLink[] removedLinks = null;
 		TemporaryController[] removedDependencies = null;
 		
-		lock( dataKey );
+		lock( dataKey.getKey() );
 		
 		try
 		{
-			IPublishedData existingData = keyToData.get( dataKey );
+			IPublishedData existingData = keyToData.get( dataKey.getKey() );
 			if( existingData == null )
 			{
 				//data has been removed due to lack of interest, transaction is discarded
@@ -121,7 +121,7 @@ public class BlockingSTM extends STM
 			}
 			newData = existingData.setUpdatedData( inst, delta, inTransaction.getStatus(), inTransaction.isCompleteStateTransition() );
 			
-			keyToData.put( dataKey, newData );
+			keyToData.put( dataKey.getKey(), newData );
 			
 			if( inTransaction.containesReferenceInstructions() )
 			{
@@ -193,7 +193,7 @@ public class BlockingSTM extends STM
 		}
 		finally
 		{
-			unlock( dataKey );
+			unlock( dataKey.getKey() );
 		}
 		
 		
@@ -314,7 +314,7 @@ public class BlockingSTM extends STM
 		
 		unlock( inDataKey.getKey() );
 		
-		inSubscriber.updateData( inDataKey.getKey(), newData, true );
+		inSubscriber.updateData( inDataKey, newData, true );
 		
 		if( producer != null )
 			producer.init();

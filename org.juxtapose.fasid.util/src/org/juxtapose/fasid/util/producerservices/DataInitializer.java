@@ -1,6 +1,6 @@
 package org.juxtapose.fasid.util.producerservices;
 
-import java.util.HashMap;
+import java.util.HashSet;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.stm.ISTM;
@@ -19,7 +19,7 @@ import org.juxtapose.fasid.util.Status;
  */
 public class DataInitializer implements IDataSubscriber
 {
-	private final HashMap<String, IDataKey> keys = new HashMap<String, IDataKey>();
+	private final HashSet<IDataKey> keys = new HashSet<IDataKey>();
 	private final ISTM stm;
 	private volatile boolean allOK = false;
 	private final IDataInitializerListener listener;
@@ -43,18 +43,18 @@ public class DataInitializer implements IDataSubscriber
 	
 	public void addDataKey( IDataKey inKey )
 	{
-		keys.put( inKey.getKey(), inKey );
+		keys.add( inKey );
 	}
 	
 	public void init()
 	{
-		for( IDataKey key : keys.values() )
+		for( IDataKey key : keys )
 		{
 			stm.subscribeToData( key, this );
 		}
 	}
 	@Override
-	public void updateData(String inKey, IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
 		if( allOK )
 			return;

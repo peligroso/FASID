@@ -55,7 +55,7 @@ public class NonBlockingSTM extends STM
 				if( !set )
 					existingData = keyToData.get( inDataKey.getKey() );
 				else
-					inSubscriber.updateData( inDataKey.getKey(), existingData, true );
+					inSubscriber.updateData( inDataKey, existingData, true );
 			}
 		}
 		while( !set );
@@ -111,7 +111,7 @@ public class NonBlockingSTM extends STM
 	@Override
 	public void commit(STMTransaction inTransaction)
 	{
-		String dataKey = inTransaction.getDataKey();
+		String dataKey = inTransaction.getDataKey().getKey();
 
 		IPublishedData existingData;
 		IPublishedData newData;
@@ -144,7 +144,7 @@ public class NonBlockingSTM extends STM
 			
 			if( !inTransaction.isCompleteStateTransition() )
 			{
-				newData.updateSubscribers( dataKey );
+				newData.updateSubscribers( inTransaction.getDataKey() );
 			}
 
 		}catch( Exception e){}

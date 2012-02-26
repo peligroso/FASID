@@ -37,7 +37,7 @@ public class RFQProducer extends DataProducer implements IDataRequestSubscriber
 	{
 		if( inTag.equals( priceTag ))
 		{
-			stm.commit( new STMTransaction( dataKey.getKey(), RFQProducer.this, 1, 0 )
+			stm.commit( new STMTransaction( dataKey, RFQProducer.this, 1, 0 )
 			{
 				@Override
 				public void execute()

@@ -1,12 +1,13 @@
 package org.juxtapose.fasid.stm;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 
 public abstract class DataTransaction extends STMTransaction
 {
 
-	public DataTransaction( String inDataKey, IDataProducer inProducer )
+	public DataTransaction( IDataKey inDataKey, IDataProducer inProducer )
 	{
 		super( inDataKey, inProducer, 0, 0 );
 	}

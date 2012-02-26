@@ -32,7 +32,7 @@ public class SpotPriceProducer2 extends MultipleSourcedPrice implements IDataSub
 	
 	public void linkStaticData()
 	{
-		stm.commit( new STMTransaction( dataKey.getKey(), SpotPriceProducer2.this, 1, 0 )
+		stm.commit( new STMTransaction( dataKey, SpotPriceProducer2.this, 1, 0 )
 		{
 			@Override
 			public void execute()

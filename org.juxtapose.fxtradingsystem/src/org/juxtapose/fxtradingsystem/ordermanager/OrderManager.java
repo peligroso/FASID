@@ -23,8 +23,12 @@ import org.juxtapose.fasid.util.subscriber.DataSequencer;
 import org.juxtapose.fasid.util.subscriber.ISequencedDataSubscriber;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
-import org.juxtapose.fxtradingsystem.priceengine.PriceEngineUtil;
 
+/**
+ * @author Pontus Jörgne
+ * Feb 26, 2012
+ * Copyright (c) Pontus Jörgne. All rights reserved
+ */
 public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataRequestSubscriber, ISequencedDataSubscriber
 {
 	volatile String priceKey = null;
@@ -59,9 +63,9 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	}
 
 	@Override
-	public void updateData( String inKey, IPublishedData inData, boolean inFirstUpdate )
+	public void updateData( IDataKey inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
-		if( inKey == KeyConstants.PRODUCER_SERVICE_KEY.getKey() )
+		if( inKey.equals( KeyConstants.PRODUCER_SERVICE_KEY ))
 		{
 			DataType<?> dataValue = inData.getValue( FXProducerServiceConstants.PRICE_ENGINE );
 			if( dataValue != null )
@@ -78,7 +82,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 				System.out.println( "Price engine is not registered");
 			}
 		}
-		if( inKey.contains(FXDataConstants.STATE_TYPE_RFQ ))
+		if( inKey.getType().equals( FXDataConstants.STATE_TYPE_RFQ ))
 		{
 			processData( inData );
 		}

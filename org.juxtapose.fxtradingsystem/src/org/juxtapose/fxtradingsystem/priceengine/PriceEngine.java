@@ -101,7 +101,7 @@ public class PriceEngine extends DataProducerService implements IPriceEngine
 	 * @see org.juxtapose.fasid.util.IDataSubscriber#updateData(java.lang.String, org.juxtapose.fasid.util.IPublishedData, boolean)
 	 */
 	@Override
-	public void updateData( String iKey, IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey iKey, IPublishedData inData, boolean inFirstUpdate)
 	{
 		DataType<?> dataValue = inFirstUpdate ? inData.getValue( FXProducerServiceConstants.ORDER_MANAGER ) : inData.getValue( FXProducerServiceConstants.ORDER_MANAGER );
 		if( dataValue != null )

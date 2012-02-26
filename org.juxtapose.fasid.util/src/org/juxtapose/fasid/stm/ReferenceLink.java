@@ -1,5 +1,6 @@
 package org.juxtapose.fasid.stm;
 
+import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
@@ -33,7 +34,7 @@ public class ReferenceLink extends DataProducerDependencyController implements I
 	
 	
 	@Override
-	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, final IPublishedData inData, boolean inFirstUpdate )
 	{
 		//Notify producer about delivered Data. ON_Request Data is not interesting
 		if( inData.getStatus() != Status.ON_REQUEST )

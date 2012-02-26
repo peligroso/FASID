@@ -78,7 +78,7 @@ public class DataSequencer implements IDataSubscriber
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.util.IDataSubscriber#updateData(java.lang.String, org.juxtapose.fasid.util.IPublishedData, boolean)
 	 */
-	public void updateData(String inKey, IPublishedData inData, boolean inFirstUpdate)
+	public void updateData( IDataKey inKey, IPublishedData inData, boolean inFirstUpdate )
 	{
 		Sequence syncObj = new Sequence( inData.getSequenceID(), inData, Sequence.TYPE_OBJ);
 

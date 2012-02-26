@@ -128,7 +128,7 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 	 */
 	public void referencedDataUpdated( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData )
 	{
-		stm.commit( new STMTransaction( dataKey.getKey(), this, 0, 0 )
+		stm.commit( new STMTransaction( dataKey, this, 0, 0 )
 		{
 			@Override
 			public void execute()
@@ -180,7 +180,7 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 	
 	protected void setStatus( final Status inStatus )
 	{
-		stm.commit( new STMTransaction( dataKey.getKey(), DataProducer.this, 0, 0 )
+		stm.commit( new STMTransaction( dataKey, DataProducer.this, 0, 0 )
 		{
 			@Override
 			public void execute()
@@ -190,7 +190,10 @@ public abstract class DataProducer extends TemporaryController implements IDataP
 		});
 	}
 	
-	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
+	/* (non-Javadoc)
+	 * @see org.juxtapose.fasid.util.IDataSubscriber#updateData(org.juxtapose.fasid.producer.IDataKey, org.juxtapose.fasid.util.IPublishedData, boolean)
+	 */
+	public void updateData( IDataKey inKey, final IPublishedData inData, boolean inFirstUpdate )
 	{
 		
 	}
