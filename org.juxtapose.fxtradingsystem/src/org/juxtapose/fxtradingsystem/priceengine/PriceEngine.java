@@ -54,7 +54,10 @@ public class PriceEngine extends DataProducerService implements IPriceEngine
 		
 			inSubscriber.deliverKey(  ProducerUtil.createDataKey( getServiceId(), PriceEngineDataConstants.STATE_TYPE_PRICE, new Integer[]{FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2, FXDataConstants.FIELD_INSTRUMENT},new String[]{ccy1, ccy2, instrumentType} ), inTag);
 		}
-		inSubscriber.queryNotAvailible( inTag );
+		else
+		{
+			inSubscriber.queryNotAvailible( inTag );
+		}
 	}
 
 	/* (non-Javadoc)

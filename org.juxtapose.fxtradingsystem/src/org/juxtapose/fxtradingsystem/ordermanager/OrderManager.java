@@ -1,30 +1,28 @@
 package org.juxtapose.fxtradingsystem.ordermanager;
 
-import static org.juxtapose.fxtradingsystem.priceengine.PriceEngineDataConstants.*;
-
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
+import org.juxtapose.fasid.producer.ProducerUtil;
+import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
 import org.juxtapose.fasid.util.DataConstants;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
-import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
-import org.juxtapose.fasid.util.data.DataTypeLong;
+import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fasid.util.subscriber.DataSequencer;
 import org.juxtapose.fasid.util.subscriber.ISequencedDataSubscriber;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
-import org.juxtapose.fxtradingsystem.marketdata.IMarketDataSubscriber;
-import org.juxtapose.fxtradingsystem.marketdata.QPMessage;
 import org.juxtapose.fxtradingsystem.priceengine.PriceEngineUtil;
 
 public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataRequestSubscriber, ISequencedDataSubscriber
@@ -35,11 +33,28 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	
 	final long spotPriceQueryTag = 1;
 	
+	ClientConnector connector;
+	
+	ConcurrentHashMap<Long, RFQProducer> idToRFQProducer = new ConcurrentHashMap<Long, RFQProducer>(512);
+	
 
 	@Override
 	public IDataProducer getDataProducer(IDataKey inDataKey)
 	{
-		// TODO Auto-generated method stub
+		if( FXDataConstants.STATE_TYPE_RFQ.equals( inDataKey.getType() ))
+		{
+			String val = inDataKey.getValue( FXDataConstants.FIELD_ID );
+			Long id = Long.parseLong( val );
+			
+			RFQProducer producer = idToRFQProducer.get( id );
+			
+			if( producer ==  null )
+			{
+				stm.logError("Could not find rfq producer for key "+inDataKey);
+			}
+			
+			return producer;
+		}
 		return null;
 	}
 
@@ -55,8 +70,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 				
 				if( dataValue.get() == Status.OK.toString() )
 				{
-					HashMap<Integer, String> query = PriceEngineUtil.getSpotPriceQuery( STATE_EUR, STATE_SEK );
-					stm.getDataKey( FXProducerServiceConstants.PRICE_ENGINE, this, spotPriceQueryTag, query );
+					connector = new ClientConnector( this );
 				}
 			}
 			else
@@ -64,7 +78,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 				System.out.println( "Price engine is not registered");
 			}
 		}
-		if( inKey.equals( priceKey ))
+		if( inKey.contains(FXDataConstants.STATE_TYPE_RFQ ))
 		{
 			processData( inData );
 		}
@@ -92,11 +106,12 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 		{
 			long now = System.nanoTime();
 			
-			DataTypeBigDecimal bid = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_BID );
-			DataTypeBigDecimal ask = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_ASK );
-			DataTypeBigDecimal spread = (DataTypeBigDecimal)inData.getValue( FXDataConstants.FIELD_SPREAD );
+			DataTypeRef priceRef = (DataTypeRef)inData.getValue( FXDataConstants.FIELD_PRICE );
+			DataTypeBigDecimal bid = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_BID );
+			DataTypeBigDecimal ask = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_ASK );
+			DataTypeBigDecimal spread = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_SPREAD );
 			
-			Long tou = (Long)inData.getValue( DataConstants.FIELD_TIMESTAMP ).get();
+			Long tou = (Long)priceRef.getReferenceData().getValue( DataConstants.FIELD_TIMESTAMP ).get();
 			
 			long updateProcessingTime = now-tou;
 
@@ -120,27 +135,37 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 		}
 	}
 	
-	private void startRFQListener()
+	public void sendRFQ( final RFQMessage inMessage )
 	{
-		Thread rfqThread = new Thread( new Runnable()
-		{
+		stm.execute( new Runnable(){
+
 			@Override
 			public void run()
 			{
-				try
-				{
-					for(;;)
-					{
-						
-					}
-				} catch ( Throwable t )
-				{
-					t.printStackTrace();
-				}
+				long rfqID = inMessage.tag;
+				
+				String id = Long.toString( rfqID );
+				
+				IDataKey key = ProducerUtil.createDataKey( getServiceId(), FXDataConstants.STATE_TYPE_RFQ, 
+						new Integer[]{FXDataConstants.FIELD_ID, FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2}, 
+						new String[]{id, inMessage.ccy1, inMessage.ccy2 } );
+				
+				RFQProducer producer = new RFQProducer( key, stm );
+				
+				idToRFQProducer.put( rfqID, producer );
+				
+				stm.subscribeToData( key, OrderManager.this );
 			}
 			
-		}, "RFQ Listener");
+		}, IExecutor.HIGH );
 	}
+	
+	public void sendDR( RFQMessage inMessage )
+	{
+		
+	}
+	
+	
 
 	@Override
 	public void deliverKey(IDataKey inDataKey, Long inTag)

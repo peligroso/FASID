@@ -50,12 +50,18 @@ public class FXDataConstants extends DataConstants
 	public static final int FIELD_NEAR_SWAP = BASE+30;
 	public static final int FIELD_FAR_SWAP = BASE+31;
 	
+	public static final int FIELD_PRICE = BASE+32;
+	
+	public static final int FIELD_ID = BASE+33;
+	
 	public static String STATE_INSTRUMENT_SPOT = "SP";
 	public static String STATE_INSTRUMENT_FWD = "FWD";
 	public static String STATE_INSTRUMENT_SWAP = "SWAP";
 	
+	public static final String STATE_TYPE_RFQ = "RFQ";
+	
 	public static int getBase()
 	{
-		return BASE+32;
+		return BASE+34;
 	}
 }

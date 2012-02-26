@@ -110,13 +110,6 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 
 
 	@Override
-	public void stop()
-	{
-		stm.unsubscribeToData( reutersDataKey, this );
-		stm.unsubscribeToData( bloombergDataKey, this );
-	}
-
-	@Override
 	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
 	{
 		if( reutersDataKey == null || bloombergDataKey == null )
