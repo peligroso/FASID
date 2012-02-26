@@ -35,7 +35,7 @@ public class CcyProducer extends DataProducer
 	@Override
 	public void start()
 	{
-		stm.commit( new DataTransaction( dataKey.getKey(), CcyProducer.this )
+		stm.commit( new DataTransaction( dataKey.getKey(), CcyProducer.this, 0, 0 )
 		{
 			@Override
 			public void execute()

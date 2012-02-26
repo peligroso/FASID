@@ -13,12 +13,10 @@ import org.juxtapose.fasid.util.data.DataTypeRef;
  * 
  * Class to holds subscription between the referenced publishedData and the data reference.
  */
-public class ReferenceLink extends TemporaryController implements IDataSubscriber
+public class ReferenceLink extends DataProducerDependencyController implements IDataSubscriber
 {
 	private final Integer hashKey;
-	private DataTypeRef ref;
-	private final ISTM stm;
-	private final IDataProducer parentProducer;
+	private final DataTypeRef ref;
 	
 	/**
 	 * @param inParent
@@ -28,16 +26,11 @@ public class ReferenceLink extends TemporaryController implements IDataSubscribe
 	 */
 	public ReferenceLink( IDataProducer inProducer, ISTM inSTM, Integer inHashKey, DataTypeRef inRef )
 	{
-		stm = inSTM;
+		super( inProducer, inSTM, inHashKey, inRef.get() );
 		hashKey = inHashKey;
 		ref = inRef;
-		parentProducer = inProducer;
 	}
 	
-	protected void start()
-	{
-		stm.subscribeToData( ref.get(), this );
-	}
 	
 	@Override
 	public void updateData(String inKey, final IPublishedData inData, boolean inFirstUpdate)
@@ -54,11 +47,5 @@ public class ReferenceLink extends TemporaryController implements IDataSubscribe
 		return ref;
 	}
 			
-	
-	protected void stop()
-	{
-		stm.unsubscribeToData( ref.get(), this );
-	}
-
 }
 

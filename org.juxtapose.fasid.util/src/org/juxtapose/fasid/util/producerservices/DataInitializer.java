@@ -76,5 +76,4 @@ public class DataInitializer implements IDataSubscriber
 			listener.dataInitialized();
 		}
 	}
-
 }

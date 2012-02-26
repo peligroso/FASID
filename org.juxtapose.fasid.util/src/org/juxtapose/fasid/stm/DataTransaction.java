@@ -29,13 +29,13 @@ import com.trifork.clj_ds.IPersistentMap;
  */
 public abstract class DataTransaction
 {
-	private String m_dataKey;	
+	private final String m_dataKey;	
 	private IPersistentMap<Integer, DataType<?>> m_stateInstruction;
 	
-	private Set<Integer> m_deltaState = new HashSet<Integer>();
+	private final Set<Integer> m_deltaState = new HashSet<Integer>();
 	
-	private Map<Integer, DataTypeRef> addedDataReferences = new HashMap<Integer, DataTypeRef>();
-	private List<Integer> removedDataReferences = new ArrayList<Integer>();
+	private final Map<Integer, DataTypeRef> addedDataReferences;
+	private final List<Integer> removedDataReferences;
 	
 	private IDataProducer m_producer = null;
 	
@@ -44,22 +44,29 @@ public abstract class DataTransaction
 	private boolean disposed = false;
 	private boolean m_inCompleteStateTransition = false;
 	
+	private boolean containesReferenceInstructions = false;
+	
 	/**
 	 * @param inDataKey
 	 */
-	public DataTransaction( String inDataKey ) 
+	public DataTransaction( String inDataKey, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
+		addedDataReferences = new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
+		removedDataReferences = new ArrayList<Integer>( inRemovedReferences );
 	}
 	
 	/**
 	 * @param inDataKey
 	 * @param inProducer
 	 */
-	public DataTransaction( String inDataKey, IDataProducer inProducer ) 
+	public DataTransaction( String inDataKey, IDataProducer inProducer, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
 		m_producer = inProducer;
+		
+		addedDataReferences = new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
+		removedDataReferences = new ArrayList<Integer>( inRemovedReferences );
 	}
 	
 	/**
@@ -99,6 +106,8 @@ public abstract class DataTransaction
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataTypeRef );
 		m_deltaState.add(inKey);
+		
+		containesReferenceInstructions = true;
 	}
 	
 	/**
@@ -113,6 +122,8 @@ public abstract class DataTransaction
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataRef );
 		m_deltaState.add(inKey);
+		
+		containesReferenceInstructions = true;
 	}
 
 	/**
@@ -134,6 +145,8 @@ public abstract class DataTransaction
 		{
 			removedDataReferences.add( inKey );
 		}
+		
+		containesReferenceInstructions = true;
 	}
 	
 	/**
@@ -214,5 +227,10 @@ public abstract class DataTransaction
 	public boolean isCompleteStateTransition( )
 	{
 		return !m_inCompleteStateTransition;
+	}
+	
+	public boolean containesReferenceInstructions()
+	{
+		return containesReferenceInstructions;
 	}
 }

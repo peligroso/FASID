@@ -13,6 +13,7 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.producer.executor.IExecutor;
+import org.juxtapose.fasid.util.IDataRequestSubscriber;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.KeyConstants;
@@ -57,7 +58,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 		Integer id = inProducerService.getServiceId();
 		idToProducerService.put( id, inProducerService );
 		
-		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this )
+		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this, 0, 0 )
 		{
 			@Override
 			public void execute()
@@ -73,7 +74,7 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	 */
 	public void updateProducerStatus( final IDataProducerService inProducerService, final Status initState )
 	{
-		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this )
+		commit( new DataTransaction( KeyConstants.PRODUCER_SERVICE_KEY.getKey(), this, 0, 0 )
 		{
 			@Override
 			public void execute()
@@ -98,29 +99,29 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	 * @see org.juxtapose.fasid.util.producer.IDataProducerService#getKey(java.util.HashMap)
 	 */
 	@Override
-	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
+	public void getDataKey( IDataRequestSubscriber inSubscriber, Long inTag, HashMap<Integer, String> inQuery)
 	{
 		String val = inQuery.get( FIELD_QUERY_KEY );
 		
 		if( val != null && val == PRODUCER_SERVICES )
 		{
-			return KeyConstants.PRODUCER_SERVICE_KEY;
+			inSubscriber.deliverKey( KeyConstants.PRODUCER_SERVICE_KEY, inTag );
 		}
-		return null;
+		inSubscriber.queryNotAvailible( inTag );
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.juxtapose.fasid.stm.exp.ISTM#getDataKey(java.lang.Integer, java.util.HashMap)
 	 */
-	public IDataKey getDataKey(Integer inProducerService, HashMap<Integer, String> inQuery)
+	public void getDataKey(Integer inProducerService, IDataRequestSubscriber inSubscriber, Long inTag, HashMap<Integer, String> inQuery)
 	{
 		IDataProducerService producerService = idToProducerService.get( inProducerService );
 		if( producerService == null )
 		{
-			System.err.println( "Producer "+inProducerService+" could not be found ");
-			return null;
+			logError( "Producer "+inProducerService+" could not be found ");
+			inSubscriber.queryNotAvailible( inTag );
 		}
-		return producerService.getDataKey( inQuery );
+		producerService.getDataKey( inSubscriber, inTag, inQuery );
 	}
 	
 	@Override
@@ -241,6 +242,23 @@ public abstract class STM implements ISTM, IDataProducerService, IDataSubscriber
 	{
 		executor.scheduleExecution( inRunnable, inPrio, inTime, inTimeUnit );
 	}
+	
+	public void deliverKey( IDataKey inDataKey, Long inTag )
+	{
+		
+	}
+	public void queryNotAvailible( Long inTag )
+	{
+		
+	}
+	
+	public void addDependency( String inKey, TemporaryController inController )
+	{}
+	public TemporaryController removeDependency( String inDataKey )
+	{
+		return null;
+	}
+	
 	
 	public void addDataReferences( Integer inFieldKey, ReferenceLink inLink ){}
 	public ReferenceLink removeReferenceLink( Integer inField ){ return null; }

@@ -4,7 +4,8 @@ public class PrimeGenerator
 {
 	public static void main( String... inArgs )
 	{
-		calcZeta();
+		calcRatio();
+//		calcZeta();
 //		int primes = 2000;
 //		int primeIndex = 1;
 //		
@@ -59,5 +60,29 @@ public class PrimeGenerator
 		}
 		
 		System.out.println( sum );
+	}
+	
+	public static void calcRatio()
+	{
+		int primes = 1000000;
+		int primeIndex = 1;
+		int regIndex = 1;
+		
+		for( int i = 2; i < primes; i++ )
+		{
+			if( isPrime( i ) )
+			{
+				primeIndex++;
+			}
+			else
+				regIndex++;
+			
+			if( i % 200 == 0 )
+			{
+				System.out.println( (regIndex / primeIndex) );
+			}
+		}
+		
+		
 	}
 }

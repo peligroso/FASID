@@ -11,8 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public abstract class TemporaryController
 {
-	public boolean initiated = false;
-	public boolean disposed = false;
+	private boolean initiated = false;
+	private boolean disposed = false;
 	
 	public ReentrantLock startStopLock = new ReentrantLock();
 
@@ -26,12 +26,10 @@ public abstract class TemporaryController
 		{
 			if( initiated )
 			{
-				startStopLock.unlock();
 				throw new IllegalAccessError();
 			}
 			if( disposed )
 			{
-				startStopLock.unlock();
 				return;
 			}
 			initiated = true;
@@ -64,4 +62,14 @@ public abstract class TemporaryController
 	
 	protected abstract void start();
 	protected abstract void stop();
+	
+	public boolean isInitiated()
+	{
+		return initiated;
+	}
+	
+	public boolean isDisposed()
+	{
+		return disposed;
+	}
 }

@@ -84,6 +84,7 @@ public class BlockingSTM extends STM
 		
 		ReferenceLink[] addedLinks = null;
 		ReferenceLink[] removedLinks = null;
+		TemporaryController[] removedDependencies = null;
 		
 		lock( dataKey );
 		
@@ -122,57 +123,72 @@ public class BlockingSTM extends STM
 			
 			keyToData.put( dataKey, newData );
 			
-			//Init reference links
-			Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
-			addedLinks = new ReferenceLink[ dataReferences.size() ];
-			
-			if( !dataReferences.isEmpty() )
+			if( inTransaction.containesReferenceInstructions() )
 			{
-				IDataProducer producer = newData.getProducer();
-				if( producer == null )
-					logError( "Tried to add reference to data with null producer" );
-				else
+				//Init reference links
+				Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
+				addedLinks = new ReferenceLink[ dataReferences.size() ];
+
+				if( !dataReferences.isEmpty() )
 				{
-					int i = 0;
-					for( Integer fieldKey : dataReferences.keySet() )
+					IDataProducer producer = newData.getProducer();
+					if( producer == null )
+						logError( "Tried to add reference to data with null producer" );
+					else
 					{
-						DataTypeRef ref = dataReferences.get( fieldKey );
-						ReferenceLink refLink = new ReferenceLink( producer, this, fieldKey, ref );
-						addedLinks[i] = refLink;
-						i++;
+						int i = 0;
+						for( Integer fieldKey : dataReferences.keySet() )
+						{
+							DataTypeRef ref = dataReferences.get( fieldKey );
+							ReferenceLink refLink = new ReferenceLink( producer, this, fieldKey, ref );
+							producer.addDataReferences( fieldKey, refLink );
+							addedLinks[i] = refLink;
+							i++;
+						}
+					}
+				}
+
+
+				//Dispose reference links
+				List< Integer > removedReferences = inTransaction.getRemovedReferences();
+				removedLinks = new ReferenceLink[ removedReferences.size() ];
+
+				if( !removedReferences.isEmpty() )
+				{
+					IDataProducer producer = newData.getProducer();
+					if( producer == null )
+						logError( "Tried to remove reference from data with null producer" );
+					else
+					{
+						int i = 0;
+						for( Integer fieldKey : dataReferences.keySet() )
+						{
+							ReferenceLink refLink = producer.removeReferenceLink( fieldKey );
+							if( refLink == null )
+							{
+								logError( "Tried to remove reference Link that is not stored in the producer" );
+							}
+							removedLinks[i] = refLink;
+							i++;
+						}
 					}
 				}
 			}
-
-
-			//Dispose reference links
-			List< Integer > removedReferences = inTransaction.getRemovedReferences();
-			removedLinks = new ReferenceLink[ removedReferences.size() ];
 			
-			if( !removedReferences.isEmpty() )
+			if( inTransaction instanceof DependencyTransaction )
 			{
 				IDataProducer producer = newData.getProducer();
 				if( producer == null )
-					logError( "Tried to remove reference from data with null producer" );
-				else
 				{
-					int i = 0;
-					for( Integer fieldKey : dataReferences.keySet() )
-					{
-						ReferenceLink refLink = producer.removeReferenceLink( fieldKey );
-						if( refLink == null )
-						{
-							logError( "Tried to remove reference Link that is not stored in the producer" );
-						}
-						removedLinks[i] = refLink;
-						i++;
-					}
+					logError( "Tried to add dependency to data with null producer" );
+					return;
 				}
+				removedDependencies = prepareDependencies( (DependencyTransaction)inTransaction, producer );
 			}
 			
 		}catch( Throwable t )
 		{
-			logError( t.getMessage() );
+			logError( t.getStackTrace().toString() );
 		}
 		finally
 		{
@@ -189,14 +205,67 @@ public class BlockingSTM extends STM
 			}
 		}
 		
-		for( ReferenceLink link : addedLinks )
+		if( inTransaction.containesReferenceInstructions() )
 		{
-			link.init();
+			for( ReferenceLink link : addedLinks )
+			{
+				link.init();
+			}
+
+			for( ReferenceLink link : removedLinks )
+			{
+				link.dispose();
+			}
 		}
 		
-		for( ReferenceLink link : removedLinks )
+		if( inTransaction instanceof DependencyTransaction )
 		{
-			link.dispose();
+			executeDependencies( (DependencyTransaction)inTransaction, newData.getProducer(), removedDependencies );
+		}
+	}
+	
+	/**
+	 * @param inTransaction
+	 * @param inProducer
+	 * @return
+	 */
+	private TemporaryController[] prepareDependencies( DependencyTransaction inTransaction, IDataProducer inProducer )
+	{
+		Map< String, TemporaryController > dependencies = inTransaction.getAddedDependencies();
+		for( String key : dependencies.keySet() )
+		{
+			TemporaryController controller = dependencies.get( key ); 
+			inProducer.addDependency( key, controller );
+		}
+		
+		List< String > removedDependencies = inTransaction.getRemovedDependencies();
+		TemporaryController[] removedControllers = new TemporaryController[removedDependencies.size()];
+		int i = 0;
+		for( String key : removedDependencies )
+		{
+			TemporaryController controller = inProducer.removeDependency( key );
+			removedControllers[i] = controller;
+			i++;
+		}
+		
+		return removedControllers;
+	}
+	
+	/**
+	 * @param inTransaction
+	 * @param inProducer
+	 */
+	private void executeDependencies( DependencyTransaction inTransaction, IDataProducer inProducer, TemporaryController[] inRemovedDependencies )
+	{
+		Map< String, TemporaryController > dependencies = inTransaction.getAddedDependencies();
+		for( TemporaryController controller : dependencies.values() )
+		{
+			controller.init();
+		}
+		
+		for( TemporaryController controller : inRemovedDependencies )
+		{
+			controller.dispose();
 		}
 	}
 	

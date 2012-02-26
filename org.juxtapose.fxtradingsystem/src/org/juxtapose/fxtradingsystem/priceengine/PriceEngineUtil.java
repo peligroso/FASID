@@ -10,10 +10,34 @@ import org.juxtapose.fxtradingsystem.FXDataConstants;
 
 public class PriceEngineUtil
 {
-	public static HashMap<Integer, String> getPriceQuery( String inCcy1, String inCcy2 )
+	public static HashMap<Integer, String> getSpotPriceQuery( String inCcy1, String inCcy2 )
 	{
 		HashMap<Integer, String> query = new HashMap<Integer, String>();
 		query.put( PriceEngineDataConstants.FIELD_TYPE, PriceEngineDataConstants.STATE_TYPE_PRICE );
+		query.put( PriceEngineDataConstants.FIELD_INSTRUMENT, PriceEngineDataConstants.STATE_INSTRUMENT_SPOT );
+		query.put( FXDataConstants.FIELD_CCY1, inCcy1 );
+		query.put( FXDataConstants.FIELD_CCY2, inCcy2 );
+		
+		return query;
+	}
+	
+	public static HashMap<Integer, String> getFwdPriceQuery( String inCcy1, String inCcy2, String inPeriod )
+	{
+		HashMap<Integer, String> query = new HashMap<Integer, String>();
+		query.put( PriceEngineDataConstants.FIELD_TYPE, PriceEngineDataConstants.STATE_TYPE_PRICE );
+		query.put( PriceEngineDataConstants.FIELD_INSTRUMENT, PriceEngineDataConstants.STATE_INSTRUMENT_FWD );
+		query.put( FXDataConstants.FIELD_CCY1, inCcy1 );
+		query.put( FXDataConstants.FIELD_CCY2, inCcy2 );
+		query.put( FXDataConstants.FIELD_PERIOD, inPeriod );
+		
+		return query;
+	}
+	
+	public static HashMap<Integer, String> getSwapPriceQuery( String inCcy1, String inCcy2, String inPeriod1, String inPeriod2 )
+	{
+		HashMap<Integer, String> query = new HashMap<Integer, String>();
+		query.put( PriceEngineDataConstants.FIELD_TYPE, PriceEngineDataConstants.STATE_TYPE_PRICE );
+		query.put( PriceEngineDataConstants.FIELD_INSTRUMENT, PriceEngineDataConstants.STATE_INSTRUMENT_SWAP );
 		query.put( FXDataConstants.FIELD_CCY1, inCcy1 );
 		query.put( FXDataConstants.FIELD_CCY2, inCcy2 );
 		

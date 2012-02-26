@@ -6,6 +6,7 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.IDataProducerService;
 import org.juxtapose.fasid.producer.executor.IExecutor;
+import org.juxtapose.fasid.util.IDataRequestSubscriber;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
@@ -16,7 +17,7 @@ public interface ISTM extends IExecutor
 	public void subscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber );
 	public void unsubscribeToData( IDataKey inDataKey, IDataSubscriber inSubscriber );
 	public void commit( DataTransaction inTransaction );
-	public IDataKey getDataKey(Integer inProducerService, HashMap<Integer, String> inQuery);
+	public void getDataKey(Integer inProducerService, IDataRequestSubscriber inSubscriber, Long inTag, HashMap<Integer, String> inQuery);
 	public void logInfo( String inMessage );
 	public void logError( String inMessage );
 	public void logError( String inMessage, Throwable inThrowable );

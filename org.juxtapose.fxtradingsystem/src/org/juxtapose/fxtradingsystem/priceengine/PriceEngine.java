@@ -6,6 +6,7 @@ import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.ProducerUtil;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
+import org.juxtapose.fasid.util.IDataRequestSubscriber;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataType;
@@ -18,7 +19,7 @@ import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
  * 17 okt 2011
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class PriceEngine extends DataProducerService implements IPriceEngine, IDataSubscriber
+public class PriceEngine extends DataProducerService implements IPriceEngine
 {
 
 	/* (non-Javadoc)
@@ -34,25 +35,26 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 	 * @see org.juxtapose.fasid.producer.IDataProducerService#getDataKey(java.util.HashMap)
 	 */
 	@Override
-	public IDataKey getDataKey(HashMap<Integer, String> inQuery)
+	public void getDataKey( IDataRequestSubscriber inSubscriber, Long inTag, HashMap<Integer, String> inQuery )
 	{
 		String type = inQuery.get( PriceEngineDataConstants.FIELD_TYPE );
 		if( type == null )
 		{
 			stm.logError( "No type defined for dataKey "+inQuery );
-			return null;
+			inSubscriber.queryNotAvailible( inTag );
 		}
 		if( type.equals( PriceEngineDataConstants.STATE_TYPE_CCYMODEL ))
-			return PriceEngineKeyConstants.CCY_MODEL_KEY;
+			inSubscriber.deliverKey( PriceEngineKeyConstants.CCY_MODEL_KEY, inTag );
 		
 		else if( type.equals( PriceEngineDataConstants.STATE_TYPE_PRICE ))
 		{
+			String instrumentType = inQuery.get( FXDataConstants.FIELD_INSTRUMENT );
 			String ccy1 = inQuery.get( FXDataConstants.FIELD_CCY1 );
 			String ccy2 = inQuery.get( FXDataConstants.FIELD_CCY2 );
 		
-			return ProducerUtil.createDataKey( getServiceId(), PriceEngineDataConstants.STATE_TYPE_PRICE, new Integer[]{FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2},new String[]{ccy1, ccy2} );
+			inSubscriber.deliverKey(  ProducerUtil.createDataKey( getServiceId(), PriceEngineDataConstants.STATE_TYPE_PRICE, new Integer[]{FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2, FXDataConstants.FIELD_INSTRUMENT},new String[]{ccy1, ccy2, instrumentType} ), inTag);
 		}
-		return null;
+		inSubscriber.queryNotAvailible( inTag );
 	}
 
 	/* (non-Javadoc)
@@ -82,8 +84,14 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 		
 		String ccy1 = inDataKey.getValue( FXDataConstants.FIELD_CCY1 );
 		String ccy2 = inDataKey.getValue( FXDataConstants.FIELD_CCY2 );
+		String instrumentType = inDataKey.getValue( FXDataConstants.FIELD_INSTRUMENT );
 		
-		return new SpotPriceProducer(inDataKey, ccy1, ccy2, stm);
+		if( FXDataConstants.STATE_INSTRUMENT_SPOT.equals( instrumentType ) )
+		{
+			return new SpotPriceProducer(inDataKey, ccy1, ccy2, stm);
+		}
+		
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -111,4 +119,5 @@ public class PriceEngine extends DataProducerService implements IPriceEngine, ID
 	{
 		return FXProducerServiceConstants.PRICE_ENGINE;
 	}
+
 }

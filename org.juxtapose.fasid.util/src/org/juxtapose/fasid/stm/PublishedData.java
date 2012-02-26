@@ -31,6 +31,8 @@ final class PublishedData implements IPublishedData
 	
 	final IPersistentVector<IDataSubscriber> subscribers;
 	
+	
+	
 	final IDataProducer producer;
 	
 	final Status status;

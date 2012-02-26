@@ -140,7 +140,7 @@ public class MarketDataProducer extends DataProducer implements IMarketDataSubsc
 	
 	public void parseQuote( final QPMessage inQuote )
 	{
-		stm.commit( new DataTransaction(dataKey.getKey(), this)
+		stm.commit( new DataTransaction(dataKey.getKey(), this, 0, 0)
 		{
 			@Override
 			public void execute()

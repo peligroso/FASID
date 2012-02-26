@@ -73,7 +73,7 @@ public class MarketDataSource
 		updateThread.start();
 	}
 	
-	public void addSubscriber( IMarketDataSubscriber inSubscriber, QPMessage inSubscribeMessage )
+	private void addSubscriber( IMarketDataSubscriber inSubscriber, QPMessage inSubscribeMessage )
 	{
 		subscribedInstruments.put( inSubscriber, inSubscribeMessage );
 	}
