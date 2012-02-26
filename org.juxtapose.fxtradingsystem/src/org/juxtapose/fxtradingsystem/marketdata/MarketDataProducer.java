@@ -2,6 +2,7 @@ package org.juxtapose.fxtradingsystem.marketdata;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.stm.DataTransaction;
 import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.Status;
@@ -140,7 +141,7 @@ public class MarketDataProducer extends DataProducer implements IMarketDataSubsc
 	
 	public void parseQuote( final QPMessage inQuote )
 	{
-		stm.commit( new STMTransaction(dataKey.getKey(), this, 0, 0)
+		stm.commit( new DataTransaction(dataKey.getKey(), this )
 		{
 			@Override
 			public void execute()

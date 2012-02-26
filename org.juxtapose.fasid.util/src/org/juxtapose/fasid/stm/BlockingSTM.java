@@ -127,9 +127,9 @@ public class BlockingSTM extends STM
 			{
 				//Init reference links
 				Map< Integer, DataTypeRef > dataReferences = inTransaction.getAddedReferences();
-				addedLinks = new ReferenceLink[ dataReferences.size() ];
+				addedLinks = dataReferences == null ? null : new ReferenceLink[ dataReferences.size() ];
 
-				if( !dataReferences.isEmpty() )
+				if( dataReferences == null || !dataReferences.isEmpty() )
 				{
 					IDataProducer producer = newData.getProducer();
 					if( producer == null )
@@ -151,9 +151,9 @@ public class BlockingSTM extends STM
 
 				//Dispose reference links
 				List< Integer > removedReferences = inTransaction.getRemovedReferences();
-				removedLinks = new ReferenceLink[ removedReferences.size() ];
+				removedLinks = removedReferences == null ? null : new ReferenceLink[ removedReferences.size() ];
 
-				if( !removedReferences.isEmpty() )
+				if( removedReferences != null && !removedReferences.isEmpty() )
 				{
 					IDataProducer producer = newData.getProducer();
 					if( producer == null )
@@ -188,6 +188,7 @@ public class BlockingSTM extends STM
 			
 		}catch( Throwable t )
 		{
+			t.printStackTrace();
 			logError( t.getStackTrace().toString() );
 		}
 		finally
@@ -207,14 +208,20 @@ public class BlockingSTM extends STM
 		
 		if( inTransaction.containesReferenceInstructions() )
 		{
-			for( ReferenceLink link : addedLinks )
+			if( addedLinks != null )
 			{
-				link.init();
+				for( ReferenceLink link : addedLinks )
+				{
+					link.init();
+				}
 			}
 
-			for( ReferenceLink link : removedLinks )
+			if( removedLinks != null )
 			{
-				link.dispose();
+				for( ReferenceLink link : removedLinks )
+				{
+					link.dispose();
+				}
 			}
 		}
 		

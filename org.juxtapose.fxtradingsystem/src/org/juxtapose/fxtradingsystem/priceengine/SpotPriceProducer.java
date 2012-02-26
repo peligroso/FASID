@@ -11,6 +11,7 @@ import java.util.Random;
 
 import org.juxtapose.fasid.producer.DataProducer;
 import org.juxtapose.fasid.producer.IDataKey;
+import org.juxtapose.fasid.stm.DataTransaction;
 import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.DataConstants;
@@ -121,7 +122,7 @@ public final class SpotPriceProducer extends DataProducer implements IDataReques
 		
 		if( inData.getStatus() == Status.OK )
 		{
-			stm.commit( new STMTransaction( dataKey.getKey(), SpotPriceProducer.this, 0, 0 )
+			stm.commit( new DataTransaction( dataKey.getKey(), SpotPriceProducer.this )
 			{
 				@Override
 				public void execute()

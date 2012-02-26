@@ -52,8 +52,15 @@ public abstract class STMTransaction
 	public STMTransaction( String inDataKey, int inAddedRefenrence, int inRemovedReferences ) 
 	{
 		m_dataKey = inDataKey;
-		addedDataReferences = new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
-		removedDataReferences = new ArrayList<Integer>( inRemovedReferences );
+		addedDataReferences = inAddedRefenrence == 0 ? null : new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
+		removedDataReferences = inRemovedReferences == 0 ? null : new ArrayList<Integer>( inRemovedReferences );
+	}
+	
+	public STMTransaction( String inDataKey ) 
+	{
+		m_dataKey = inDataKey;
+		addedDataReferences = new HashMap<Integer, DataTypeRef>( 8 );
+		removedDataReferences = new ArrayList<Integer>( 8 );
 	}
 	
 	/**
@@ -65,8 +72,21 @@ public abstract class STMTransaction
 		m_dataKey = inDataKey;
 		m_producer = inProducer;
 		
-		addedDataReferences = new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
-		removedDataReferences = new ArrayList<Integer>( inRemovedReferences );
+		addedDataReferences = inAddedRefenrence == 0 ? null : new HashMap<Integer, DataTypeRef>( inAddedRefenrence );
+		removedDataReferences = inRemovedReferences == 0 ? null : new ArrayList<Integer>( inRemovedReferences );
+	}
+	
+	/**
+	 * @param inDataKey
+	 * @param inProducer
+	 */
+	public STMTransaction( String inDataKey, IDataProducer inProducer ) 
+	{
+		m_dataKey = inDataKey;
+		m_producer = inProducer;
+		
+		addedDataReferences = new HashMap<Integer, DataTypeRef>( 8 );
+		removedDataReferences = new ArrayList<Integer>( 8 );
 	}
 	
 	/**
@@ -106,8 +126,6 @@ public abstract class STMTransaction
 		
 		m_stateInstruction = m_stateInstruction.assoc( inKey, inDataTypeRef );
 		m_deltaState.add(inKey);
-		
-		containesReferenceInstructions = true;
 	}
 	
 	/**
@@ -144,9 +162,9 @@ public abstract class STMTransaction
 		if( removedData instanceof DataTypeRef )
 		{
 			removedDataReferences.add( inKey );
+			containesReferenceInstructions = true;
 		}
 		
-		containesReferenceInstructions = true;
 	}
 	
 	/**
