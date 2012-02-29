@@ -36,7 +36,16 @@ public class DataSequencer implements IDataSubscriber
 		stm = inSTM;
 		key = inKey;
 		
+	}
+	
+	public void start()
+	{
 		stm.subscribeToData( key, this );
+	}
+	
+	public void stop()
+	{
+		stm.unsubscribeToData( key, this );
 	}
 	/**
 	 * @return
@@ -122,6 +131,11 @@ public class DataSequencer implements IDataSubscriber
 
 		 return ret.object;
 	 }
+	
+	public IDataKey getDataKey()
+	{
+		return key;
+	}
 
 }
 

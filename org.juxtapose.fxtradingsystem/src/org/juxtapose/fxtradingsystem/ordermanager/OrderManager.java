@@ -29,7 +29,7 @@ import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
  * Feb 26, 2012
  * Copyright (c) Pontus Jörgne. All rights reserved
  */
-public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, IDataRequestSubscriber, ISequencedDataSubscriber
+public class OrderManager extends DataProducerService implements IOrderManager, IDataProducerService, ISequencedDataSubscriber
 {
 	volatile String priceKey = null;
 	
@@ -39,7 +39,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	
 	ClientConnector connector;
 	
-	ConcurrentHashMap<Long, RFQProducer> idToRFQProducer = new ConcurrentHashMap<Long, RFQProducer>(512);
+	ConcurrentHashMap<Long, RFQContext> idToRFQProducer = new ConcurrentHashMap<Long, RFQContext>(512);
 	
 
 	@Override
@@ -50,14 +50,15 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			String val = inDataKey.getValue( FXDataConstants.FIELD_ID );
 			Long id = Long.parseLong( val );
 			
-			RFQProducer producer = idToRFQProducer.get( id );
+			RFQContext ctx = idToRFQProducer.get( id );
 			
-			if( producer ==  null )
+			if( ctx ==  null )
 			{
 				stm.logError("Could not find rfq producer for key "+inDataKey);
+				return null;
 			}
 			
-			return producer;
+			return ctx.producer;
 		}
 		return null;
 	}
@@ -82,10 +83,6 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 				System.out.println( "Price engine is not registered");
 			}
 		}
-		if( inKey.getType().equals( FXDataConstants.STATE_TYPE_RFQ ))
-		{
-			processData( inData );
-		}
 	}
 	
 	@Override
@@ -99,17 +96,18 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 	{
 		IPublishedData data = inSequencer.get();
 		
-		processData( data );
+		processData( data, inSequencer.getDataKey() );
 		
 	}
 	
-	private void processData( IPublishedData inData )
+	private void processData( IPublishedData inData, IDataKey inKey)
 	{
 		Status status = inData.getStatus();
 		if( status == Status.OK )
 		{
-			long now = System.nanoTime();
+			String idStr = inKey.getValue( FXDataConstants.FIELD_ID );
 			
+			Long id = Long.parseLong( idStr );
 			DataTypeRef priceRef = (DataTypeRef)inData.getValue( FXDataConstants.FIELD_PRICE );
 			DataTypeBigDecimal bid = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_BID );
 			DataTypeBigDecimal ask = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_ASK );
@@ -117,20 +115,26 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			
 			Long tou = (Long)priceRef.getReferenceData().getValue( DataConstants.FIELD_TIMESTAMP ).get();
 			
-			long updateProcessingTime = now-tou;
-
 			long sequence = inData.getSequenceID();
 
 			BigDecimal validateSpread = ask.get().subtract( bid.get() );
 			boolean valid = validateSpread.equals( spread.get() );
+			
+			long now = System.nanoTime();
+			
+			long updateProcessingTime = now-tou;
 			if( ! valid )
 			{
 				System.err.println( "Price is not valid : "+validateSpread+" != "+spread.get() );
 			}
 			else
 			{
-				System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence+" updatetime: "+updateProcessingTime );
+				System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence+" updatetime: "+updateProcessingTime+"   id: "+id );
 			}
+			
+			RFQMessage message = new RFQMessage( RFQMessage.TYPE_PRICING, id, bid.get().doubleValue(), ask.get().doubleValue());
+			
+			connector.updateRFQ( message );
 		}
 		else
 		{
@@ -139,6 +143,9 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 		}
 	}
 	
+	/**
+	 * @param inMessage
+	 */
 	public void sendRFQ( final RFQMessage inMessage )
 	{
 		stm.execute( new Runnable(){
@@ -155,49 +162,39 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 						new String[]{id, inMessage.ccy1, inMessage.ccy2 } );
 				
 				RFQProducer producer = new RFQProducer( key, stm );
+				DataSequencer seq = new DataSequencer( OrderManager.this, stm, key );
 				
-				idToRFQProducer.put( rfqID, producer );
+				RFQContext ctx = new RFQContext( seq, producer );
+				idToRFQProducer.put( rfqID, ctx );
 				
-				stm.subscribeToData( key, OrderManager.this );
+				seq.start();
 			}
 			
 		}, IExecutor.HIGH );
 	}
 	
-	public void sendDR( RFQMessage inMessage )
+	/**
+	 * @param inMessage
+	 */
+	public void sendDR( final RFQMessage inMessage )
 	{
-		
-	}
-	
-	
+		stm.execute( new Runnable(){
 
-	@Override
-	public void deliverKey(IDataKey inDataKey, Long inTag)
-	{
-		if( inTag.equals( spotPriceQueryTag ))
-		{
-			IDataKey dataKey = inDataKey;
+			@Override
+			public void run()
+			{
+				RFQContext ctx = idToRFQProducer.get( inMessage.tag );
+				ctx.sequencer.stop();
+			}
 			
-			priceKey = dataKey.getKey();
-
-//			stm.subscribeToData( dataKey, this );
-			new DataSequencer( this, stm, dataKey );
-		}
-		
+		}, IExecutor.HIGH );
 	}
-
-
+	
 	@Override
 	public void getDataKey(IDataRequestSubscriber inSubscriber, Long inTag, HashMap<Integer, String> inQuery)
 	{
 		inSubscriber.queryNotAvailible( inTag );
 	}
 
-	@Override
-	public void queryNotAvailible(Long inTag)
-	{
-		// TODO Auto-generated method stub
-		
-	}
 
 }

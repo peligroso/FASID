@@ -3,6 +3,7 @@ package org.juxtapose.fxtradingsystem.ordermanager;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 
@@ -19,6 +20,8 @@ public class ClientConnector
 	long timeBetweenRFQ = 1000 * 1000000;
 	
 	long timeFromLastRFQ = 0;
+	
+	int maxRFQs = 1;
 	
 	public ClientConnector( OrderManager inManager )
 	{
@@ -38,9 +41,10 @@ public class ClientConnector
 			{
 				try
 				{
+					int i = 0;
 					for(;;)
 					{
-						RFQMessage inCommingMess = incomming.poll();
+						RFQMessage inCommingMess = incomming.poll( 1000, TimeUnit.MILLISECONDS );
 						
 						if( inCommingMess != null )
 						{
@@ -58,12 +62,12 @@ public class ClientConnector
 						}
 						
 						long time = System.nanoTime();
-						if( timeFromLastRFQ == 0 || (time - timeFromLastRFQ) > timeBetweenRFQ )
+						if( (timeFromLastRFQ == 0 || (time - timeFromLastRFQ) > timeBetweenRFQ) && i < maxRFQs )
 						{
 							sendRFQ();
-							break;
 						}
-						Thread.sleep(100);
+						
+						i++;
 					}
 				} catch ( Throwable t )
 				{
@@ -82,5 +86,17 @@ public class ClientConnector
 //			return;
 		RFQMessage rfq = new RFQMessage( "EUR", "SEK", FXDataConstants.STATE_INSTRUMENT_SPOT, "SP", "SP", tag++ );
 		manager.sendRFQ( rfq );
+	}
+	
+	public void updateRFQ( RFQMessage inMessage )
+	{
+		try
+		{
+			incomming.put( inMessage );
+		} 
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package org.juxtapose.fasid.stm.osgi;
 
 import org.juxtapose.fasid.producer.IDataProducerService;
+import org.juxtapose.fasid.producer.executor.IExecutor;
 import org.juxtapose.fasid.stm.ISTM;
 import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.KeyConstants;
@@ -30,8 +31,7 @@ public abstract class DataProducerService implements IDataProducerService, IData
 		stm = inSTM;
 	}
 	
-	
-	protected void init()
+	private void doInit()
 	{
 		initializer = createDataInitializer();
 		
@@ -45,7 +45,19 @@ public abstract class DataProducerService implements IDataProducerService, IData
 			stm.registerProducer( this, Status.OK );
 			stm.subscribeToData( KeyConstants.PRODUCER_SERVICE_KEY, this);
 		}
+	}
+	
+	protected void init()
+	{
+		stm.execute( new Runnable(){
+
+			@Override
+			public void run()
+			{
+				doInit();
+			}
 			
+		}, IExecutor.HIGH );
 	}
 	
 	public DataInitializer createDataInitializer( )
