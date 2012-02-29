@@ -2,7 +2,9 @@ package org.juxtapose.fasid.stm;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.juxtapose.fasid.producer.IDataKey;
 import org.juxtapose.fasid.producer.IDataProducer;
@@ -15,6 +17,8 @@ import org.juxtapose.fasid.util.data.DataTypeRef;
 
 import com.trifork.clj_ds.IPersistentMap;
 import com.trifork.clj_ds.IPersistentVector;
+import com.trifork.clj_ds.ISeq;
+import com.trifork.clj_ds.PersistentTreeMap.Seq;
 
 /**
  * @author Pontus Jörgne
@@ -30,8 +34,7 @@ final class PublishedData implements IPublishedData
 	final IPersistentMap<Integer, DataType<?>> dataMap;
 	final Set<Integer> deltaSet;
 	
-	final IPersistentVector<IDataSubscriber> subscribers;
-	
+	final IDataSubscriber[] subscribers;
 	
 	
 	final IDataProducer producer;
@@ -49,7 +52,7 @@ final class PublishedData implements IPublishedData
 	 * @param inProducer
 	 * @param inStatus
 	 */
-	PublishedData( IPersistentMap<Integer, DataType<?>> inData, Set<Integer> inChanges, IPersistentVector<IDataSubscriber> inSubscribers, IDataProducer inProducer, Status inStatus, long inSequenceID, boolean inCompleteUpdate ) 
+	PublishedData( IPersistentMap<Integer, DataType<?>> inData, Set<Integer> inChanges, IDataSubscriber[] inSubscribers, IDataProducer inProducer, Status inStatus, long inSequenceID, boolean inCompleteUpdate ) 
 	{
 		dataMap = inData;
 		deltaSet = Collections.unmodifiableSet( inChanges );
@@ -62,9 +65,9 @@ final class PublishedData implements IPublishedData
 	
 	public void updateSubscribers( IDataKey inKey )
 	{
-		for( int i = 0; i < subscribers.length(); i++ )
+		for( int i = 0; i < subscribers.length; i++ )
 		{
-			IDataSubscriber subscriber = subscribers.nth( i );
+			IDataSubscriber subscriber = subscribers[ i ];
 			subscriber.updateData( inKey, this, false );
 		}
 	}
@@ -75,8 +78,11 @@ final class PublishedData implements IPublishedData
 	 */
 	public IPublishedData addSubscriber( IDataSubscriber inSubscriber )
 	{
-		IPersistentVector<IDataSubscriber> newSub = subscribers.assocN(subscribers.count(), inSubscriber );
-		return new PublishedData( dataMap, deltaSet, newSub, producer, status, sequenceID, completeVersion );
+		IDataSubscriber[] newArr = new IDataSubscriber[ subscribers.length +1 ];
+		System.arraycopy( subscribers, 0, newArr, 0, subscribers.length );
+		
+		newArr[subscribers.length] = inSubscriber;
+		return new PublishedData( dataMap, deltaSet, newArr, producer, status, sequenceID, completeVersion );
 	}
 	
 	/**
@@ -84,9 +90,29 @@ final class PublishedData implements IPublishedData
 	 * @return
 	 */
 	public IPublishedData removeSubscriber( IDataSubscriber inSubscriber )
-	{
-		IPersistentVector<IDataSubscriber> newSub = subscribers.cons( inSubscriber );
-		return new PublishedData( dataMap, deltaSet, newSub, producer, status, sequenceID, completeVersion );
+	{ 
+		IDataSubscriber[] newArr = new IDataSubscriber[ subscribers.length -1];
+		int newI = 0;
+		for (int i = 0; i < newArr.length; ++i) 
+		{
+			if( inSubscriber.equals( subscribers[i])) 
+			{
+				 for (int k = i + 1; k < subscribers.length; ++k)
+					 newArr[k-1] = subscribers[k];
+				 
+				 return new PublishedData( dataMap, deltaSet, newArr, producer, status, sequenceID, completeVersion );
+			}
+			else
+			{
+				newArr[newI] = subscribers[i];
+				newI++;
+			}
+		}
+		if( inSubscriber.equals( subscribers[subscribers.length-1])) 
+		{
+			return new PublishedData( dataMap, deltaSet, newArr, producer, status, sequenceID, completeVersion );
+		}
+		return new PublishedData( dataMap, deltaSet, subscribers, producer, status, sequenceID, completeVersion );
 	}
 	
 	/**
@@ -94,7 +120,7 @@ final class PublishedData implements IPublishedData
 	 */
 	public boolean hasSubscribers()
 	{
-		return subscribers.length() > 0;
+		return subscribers.length > 0;
 	}
 	
 	/**
