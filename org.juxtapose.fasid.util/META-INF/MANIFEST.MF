@@ -4,7 +4,6 @@ Bundle-Name: Fasid
 Bundle-SymbolicName: org.juxtapose.fasid
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: org.juxtapose.fasid.jsr166y;bundle-version="1.0.0"
 Export-Package: com.trifork.clj_ds,
  org.juxtapose.fasid.producer,
  org.juxtapose.fasid.producer.executor,
