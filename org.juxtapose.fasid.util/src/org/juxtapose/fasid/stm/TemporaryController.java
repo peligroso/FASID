@@ -50,7 +50,7 @@ public abstract class TemporaryController
 		try
 		{
 			disposed = true;
-			if( !initiated )
+			if( initiated )
 			{
 				stop();
 			}
