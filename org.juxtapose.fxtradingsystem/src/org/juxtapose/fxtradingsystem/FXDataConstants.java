@@ -54,6 +54,10 @@ public class FXDataConstants extends DataConstants
 	
 	public static final int FIELD_ID = BASE+33;
 	
+	public static final int FIELD_PRICED = BASE+34;
+	
+	public static final int FIELD_FIRST_UPDATE = BASE+35;
+	
 	public static String STATE_INSTRUMENT_SPOT = "SP";
 	public static String STATE_INSTRUMENT_FWD = "FWD";
 	public static String STATE_INSTRUMENT_SWAP = "SWAP";
@@ -62,6 +66,6 @@ public class FXDataConstants extends DataConstants
 	
 	public static int getBase()
 	{
-		return BASE+34;
+		return BASE+35;
 	}
 }
