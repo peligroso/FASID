@@ -45,7 +45,6 @@ public class MarketDataProducer extends DataProducer implements IMarketDataSubsc
 		
 		try
 		{
-//			startListener();
 			startSubscription();
 		}catch( Exception e )
 		{
@@ -105,38 +104,12 @@ public class MarketDataProducer extends DataProducer implements IMarketDataSubsc
 	{
 		QPMessage subMessage = new QPMessage( QPMessage.SUBSCRIBE, ccy1, ccy2, period);
 		MarketDataSource.addSubscriber( this, subMessage, source );
-		
-//		Hashtable<String, String> properties = new Hashtable<String, String>();
-//		properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.exolab.jms.jndi.InitialContextFactory");
-//		properties.put(Context.PROVIDER_URL, "tcp://localhost:3035/");
-//
-//
-//		Context context = new InitialContext(properties);
-//
-//		ConnectionFactory factory = (ConnectionFactory) context.lookup("ConnectionFactory");
-//
-//		Connection connection = factory.createConnection();
-//
-//		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-//
-//		Destination destination = (Destination) context.lookup(QPMessage.RECIEVER_PREFIX+source);
-//
-//		connection.start();
-//		MessageProducer sender = session.createProducer(destination);
-//
-//		QPMessage subMessage = new QPMessage( QPMessage.SUBSCRIBE, ccy1, ccy2, period);//ccy1, ccy2, period);
-//		TextMessage message = session.createTextMessage( subMessage.toString() );
-//
-//		sender.send(message);
-//
-//		session.close();
-//		connection.close();
-
 	}
 	
 	protected void stop()
 	{
 		super.stop();
+		MarketDataSource.removeSubscriber( this, source );
 	}
 	
 	public void parseQuote( final QPMessage inQuote )

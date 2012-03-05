@@ -20,10 +20,27 @@ public class MarketDataSource
 			if( source == null )
 			{
 				source = new MarketDataSource( inSource );
+				
+				nameToSource.put( inSource, source );
 			}
 		}
 		
 		source.addSubscriber( inSubscriber, inSubscribeMessage );
+	}
+	
+	public static void removeSubscriber( IMarketDataSubscriber inSubscriber, String inSource )
+	{
+		MarketDataSource source;
+		
+		synchronized( mutex )
+		{
+			source = nameToSource.get( inSource );
+
+			if( source != null )
+			{
+				source.removeSubscriber( inSubscriber );
+			}
+		}
 	}
 	
 	String name;
@@ -76,6 +93,11 @@ public class MarketDataSource
 	private void addSubscriber( IMarketDataSubscriber inSubscriber, QPMessage inSubscribeMessage )
 	{
 		subscribedInstruments.put( inSubscriber, inSubscribeMessage );
+	}
+	
+	private void removeSubscriber( IMarketDataSubscriber inSubscriber )
+	{
+		subscribedInstruments.remove( inSubscriber );
 	}
 	
 }
