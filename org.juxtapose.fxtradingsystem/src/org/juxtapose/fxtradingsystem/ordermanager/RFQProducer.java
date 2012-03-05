@@ -10,6 +10,7 @@ import org.juxtapose.fasid.stm.STMTransaction;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.Status;
+import org.juxtapose.fasid.util.data.DataTypeBoolean;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
 import org.juxtapose.fxtradingsystem.FXProducerServiceConstants;
@@ -58,10 +59,26 @@ public class RFQProducer extends DataProducer implements IDataRequestSubscriber
 	
 	protected void referenceDataCall( final Integer inFieldKey, final ReferenceLink inLink, final IPublishedData inData, STMTransaction inTransaction )
 	{
+		if( inFieldKey == FXDataConstants.FIELD_PRICE )
+		{
+			DataTypeBoolean priced = (DataTypeBoolean)inTransaction.get( FXDataConstants.FIELD_FIRST_UPDATE );
+			
+			if( priced == null )
+			{
+				inTransaction.putValue( FXDataConstants.FIELD_FIRST_UPDATE, new DataTypeBoolean(true) );
+			}
+			else if( priced.get() )
+			{
+				inTransaction.putValue( FXDataConstants.FIELD_FIRST_UPDATE, new DataTypeBoolean(false) );
+			}
+		}
+		
 		if( inTransaction.getStatus() != Status.OK )
 		{
 			if( inData.getStatus() == Status.OK )
+			{
 				inTransaction.setStatus( Status.OK );
+			}
 		}
 	}
 	

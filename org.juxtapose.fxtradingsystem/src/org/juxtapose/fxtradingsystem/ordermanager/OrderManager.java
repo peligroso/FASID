@@ -18,6 +18,7 @@ import org.juxtapose.fasid.util.KeyConstants;
 import org.juxtapose.fasid.util.Status;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
+import org.juxtapose.fasid.util.data.DataTypeBoolean;
 import org.juxtapose.fasid.util.data.DataTypeRef;
 import org.juxtapose.fasid.util.subscriber.DataSequencer;
 import org.juxtapose.fasid.util.subscriber.ISequencedDataSubscriber;
@@ -107,39 +108,73 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 		{
 			String idStr = inKey.getValue( FXDataConstants.FIELD_ID );
 			
-			Long id = Long.parseLong( idStr );
+			final Long id = Long.parseLong( idStr );
 			DataTypeRef priceRef = (DataTypeRef)inData.getValue( FXDataConstants.FIELD_PRICE );
-			DataTypeBigDecimal bid = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_BID );
-			DataTypeBigDecimal ask = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_ASK );
-			DataTypeBigDecimal spread = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_SPREAD );
+			final DataTypeBigDecimal bid = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_BID );
+			final DataTypeBigDecimal ask = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_ASK );
+			final DataTypeBigDecimal spread = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_SPREAD );
 			
 			Long tou = (Long)priceRef.getReferenceData().getValue( DataConstants.FIELD_TIMESTAMP ).get();
 			
-			long sequence = inData.getSequenceID();
+			final long sequence = inData.getSequenceID();
 
 			BigDecimal validateSpread = ask.get().subtract( bid.get() );
 			boolean valid = validateSpread.equals( spread.get() );
 			
 			long now = System.nanoTime();
 			
-			long updateProcessingTime = now-tou;
+			final long updateProcessingTime = now-tou;
+			
+			final Long firstTakeTime;
+			DataTypeBoolean firstTake = (DataTypeBoolean)inData.getValue( FXDataConstants.FIELD_FIRST_UPDATE );
+			if( firstTake != null && firstTake.get() )
+			{
+				RFQContext context = idToRFQProducer.get( id );
+
+				if( context != null )
+				{
+					firstTakeTime = now - context.startTime;
+				}
+				else
+					firstTakeTime = null;
+			}
+			else
+				firstTakeTime = null;
+			
 			if( ! valid )
 			{
 				System.err.println( "Price is not valid : "+validateSpread+" != "+spread.get() );
 			}
 			else
 			{
-				System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence+" updatetime: "+updateProcessingTime+"   id: "+id );
+//				stm.execute( new Runnable(){
+//
+//					@Override
+//					public void run()
+//					{
+//						if( firstTakeTime != null )
+//							System.out.println( "RoundTrip: "+firstTakeTime); 
+//						System.out.println( "Price is "+bid.get().toPlainString()+" / "+ask.get().toPlainString()+" sequence "+sequence+" updatetime: "+updateProcessingTime+"   id: "+id );
+//					}
+//					
+//				}, IExecutor.LOW );
 			}
 			
-			RFQMessage message = new RFQMessage( RFQMessage.TYPE_PRICING, id, bid.get().doubleValue(), ask.get().doubleValue());
+			RFQMessage message = new RFQMessage( RFQMessage.TYPE_PRICING, id, bid.get().doubleValue(), ask.get().doubleValue(), firstTakeTime, updateProcessingTime, sequence );
+			
+//			long start = System.nanoTime();
 			
 			connector.updateRFQ( message );
+			
+//			long end = System.nanoTime();
+//			
+//			System.err.println("Time it took for price update was: "+(end-start)+" nano");
+			
 		}
 		else
 		{
-			long sequence = inData.getSequenceID();
-			System.out.println( "PriceStatus is "+status+" "+sequence+inData.getDataMap() );
+//			/long sequence = inData.getSequenceID();
+//			System.out.println( "PriceStatus is "+status+" "+sequence+inData.getDataMap() );
 		}
 	}
 	
@@ -164,7 +199,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 				RFQProducer producer = new RFQProducer( key, stm );
 				DataSequencer seq = new DataSequencer( OrderManager.this, stm, key );
 				
-				RFQContext ctx = new RFQContext( seq, producer );
+				RFQContext ctx = new RFQContext( seq, producer, System.nanoTime() );
 				idToRFQProducer.put( rfqID, ctx );
 				
 				seq.start();
@@ -183,8 +218,11 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			@Override
 			public void run()
 			{
-				RFQContext ctx = idToRFQProducer.get( inMessage.tag );
-				ctx.sequencer.stop();
+				RFQContext ctx = idToRFQProducer.remove( inMessage.tag );
+				if( ctx != null )
+				{
+					ctx.sequencer.stop();
+				}
 			}
 			
 		}, IExecutor.HIGH );

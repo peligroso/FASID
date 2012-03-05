@@ -1,33 +1,150 @@
 package org.juxtapose.fxtradingsystem.ordermanager;
 
+import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.TreeMap;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.juxtapose.fxtradingsystem.FXDataConstants;
+
+import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.MultiThreadedClaimStrategy;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.dsl.Disruptor;
 
 public class ClientConnector
 {
 	final OrderManager manager;
 	
-	BlockingQueue<RFQMessage> incomming;
+	Disruptor<ClientEvent> disruptor;
+	RingBuffer<ClientEvent> ringBuffer;
 	
 	Random rand = new Random();
 	
 	long tag = 0;
 	
-	long timeBetweenRFQ = 1000 * 1000000;
+	long maxTimeBetweenRFQ = 600l * 1000000l;
 	
-	long timeFromLastRFQ = 0;
+	long lastRFQTime = 0;
 	
-	int maxRFQs = 1;
+	int maxRFQs = 200;
+	int warmup = 180;
 	
+	int avgPriceUpdates = 200;
+	
+	Map<Long, Long> updateToCount = new TreeMap<Long, Long>();
+	Map<Long, Long> firstTakeToCount = new TreeMap<Long, Long>();
+	
+	ScheduledThreadPoolExecutor executor;
+	
+	private void init()
+	{
+		initStatsContainer( updateToCount );
+		initStatsContainer( firstTakeToCount );
+		
+		executor = new ScheduledThreadPoolExecutor( 1 );
+	}
+	
+	private void initStatsContainer( Map<Long, Long> inMap )
+	{
+		inMap.put( 10000l, 0l );
+		inMap.put( 20000l, 0l );
+		inMap.put( 30000l, 0l );
+		inMap.put( 40000l, 0l );
+		inMap.put( 60000l, 0l );
+		inMap.put( 80000l, 0l );
+		inMap.put( 100000l, 0l );
+		inMap.put( 150000l, 0l );
+		inMap.put( 200000l, 0l );
+		inMap.put( 300000l, 0l );
+		inMap.put( 500000l, 0l );
+		inMap.put( 1000000l, 0l );
+		inMap.put( 2000000l, 0l );
+		inMap.put( 5000000l, 0l );
+		inMap.put( 1000000000l, 0l );
+	}
+	
+	public void printStats()
+	{
+		System.out.println("FirstTake stats: ");
+		printStats( firstTakeToCount );
+		
+		System.out.println();
+		
+		System.out.println("Undate stats: ");
+		printStats( updateToCount );
+	}
+	
+	public void printStats( Map<Long, Long> inMap )
+	{
+		for( Long benchMark : inMap.keySet() )
+		{
+			Long count = inMap.get(  benchMark );
+			
+			System.out.println(benchMark+" : "+count);
+		}
+	}
+	
+	private void addSample( Long inTime, Map<Long, Long> inStatContainer )
+	{
+		for( Long benchMark : inStatContainer.keySet() )
+		{
+			if( inTime < benchMark )
+			{
+				Long count = inStatContainer.get( benchMark )+1;
+				inStatContainer.put( benchMark, count );
+				return;
+			}
+		}
+	}
 	public ClientConnector( OrderManager inManager )
 	{
-		manager = inManager;
+		init();
 		
-		incomming = new LinkedBlockingQueue<RFQMessage>();
+		EventHandler<ClientEvent> clientEventHandler = new EventHandler<ClientEvent>()
+		{
+			@Override
+			public void onEvent(ClientEvent event, long sequence, boolean endOfBatch) throws Exception
+			{
+				RFQMessage inCommingMess = event.message;
+
+				if( inCommingMess.messageType == RFQMessage.TYPE_PRICING )
+				{
+					if( inCommingMess.tag > warmup )
+					{
+						if( inCommingMess.firstTakeTime != null )
+						{
+							addSample( inCommingMess.firstTakeTime, firstTakeToCount );
+//							System.out.println( "FirstTakeTime for rfq "+inCommingMess.tag+" = "+inCommingMess.firstTakeTime+" with price "+inCommingMess.bidPrice+" / "+inCommingMess.askPrice+" sequence "+inCommingMess.sequence  );
+						}
+						else
+						{
+							addSample( inCommingMess.updateTime, updateToCount );
+//							System.out.println( "Price is "+inCommingMess.bidPrice+" / "+inCommingMess.askPrice+" sequence "+inCommingMess.sequence+" updatetime: "+inCommingMess.updateTime+"   id: "+inCommingMess.tag);
+						}
+					}
+
+					if( inCommingMess.sequence == avgPriceUpdates )//rand.nextInt( avgPriceUpdates ) == 1 )
+					{
+						RFQMessage dr = new RFQMessage( RFQMessage.TYPE_DR, inCommingMess.tag, inCommingMess.bidPrice, inCommingMess.askPrice, null, null, 0 );
+						manager.sendDR( dr );
+						
+						if( inCommingMess.tag == maxRFQs -1 )
+						{
+							printStats();
+						}
+					}
+				}
+			}
+
+		};
+		
+		disruptor = new Disruptor<ClientEvent>(ClientEvent.EVENT_FACTORY, executor, new MultiThreadedClaimStrategy(2048), new SleepingWaitStrategy());
+		disruptor.handleEventsWith( clientEventHandler );
+		ringBuffer = disruptor.start();
+		
+		manager = inManager;
 		
 		startRFQThread();
 	}
@@ -44,27 +161,32 @@ public class ClientConnector
 					int i = 0;
 					for(;;)
 					{
-						RFQMessage inCommingMess = incomming.poll( 1000, TimeUnit.MILLISECONDS );
-						
-						if( inCommingMess != null )
-						{
-							if( inCommingMess.messageType == RFQMessage.TYPE_PRICING )
-							{
-								if( rand.nextInt(5) == 1 )
-								{
-									RFQMessage dr = new RFQMessage( RFQMessage.TYPE_DR, inCommingMess.tag, inCommingMess.bidPrice, inCommingMess.askPrice );
-									manager.sendDR( dr );
-									
-									System.out.println("sending dr ");
-									break;
-								}
-							}
-						}
-						
-						long time = System.nanoTime();
-						if( (timeFromLastRFQ == 0 || (time - timeFromLastRFQ) > timeBetweenRFQ) && i < maxRFQs )
+//						RFQMessage inCommingMess = incomming.poll( 100, TimeUnit.MILLISECONDS );
+//						
+//						if( inCommingMess != null )
+//						{
+//							if( inCommingMess.messageType == RFQMessage.TYPE_PRICING )
+//							{
+//								if( inCommingMess.firstTakeTime != null )
+//									System.out.println( "FirstTakeTime for rfq "+inCommingMess.tag+" = "+inCommingMess.firstTakeTime+" with price "+inCommingMess.bidPrice+" / "+inCommingMess.askPrice+" sequence "+inCommingMess.sequence  );
+//								else
+//									System.out.println( "Price is "+inCommingMess.bidPrice+" / "+inCommingMess.askPrice+" sequence "+inCommingMess.sequence+" updatetime: "+inCommingMess.updateTime+"   id: "+inCommingMess.tag);
+//								
+//							}
+//						}
+						if( lastRFQTime == 0 )
 						{
 							sendRFQ();
+						}
+						else
+						{
+							long now = System.nanoTime();
+							long timeSinceLast = now - lastRFQTime;
+							if( timeSinceLast > maxTimeBetweenRFQ && tag < maxRFQs )
+							{
+//								System.out.println("it has been "+timeSinceLast+" since last RFQ.. placing another ("+timeSinceLast+" > "+maxTimeBetweenRFQ+")"); 
+								sendRFQ();
+							}
 						}
 						
 						i++;
@@ -84,19 +206,20 @@ public class ClientConnector
 	{
 //		if( tag > 0 )
 //			return;
+		lastRFQTime = System.nanoTime();
 		RFQMessage rfq = new RFQMessage( "EUR", "SEK", FXDataConstants.STATE_INSTRUMENT_SPOT, "SP", "SP", tag++ );
 		manager.sendRFQ( rfq );
 	}
 	
 	public void updateRFQ( RFQMessage inMessage )
 	{
-		try
-		{
-			incomming.put( inMessage );
-		} 
-		catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
+		long sequence = ringBuffer.next();
+		ClientEvent event = ringBuffer.get(sequence);
+
+		event.setMessage( inMessage );
+		
+		ringBuffer.publish(sequence);
+		
+//		incomming.offer( inMessage );
 	}
 }

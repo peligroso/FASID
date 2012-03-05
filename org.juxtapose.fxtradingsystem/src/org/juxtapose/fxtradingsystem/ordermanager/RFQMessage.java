@@ -18,6 +18,11 @@ public class RFQMessage
 	
 	public final long tag;
 	
+	public final Long firstTakeTime;
+	public final Long updateTime;
+	
+	public final long sequence;
+	
 	public RFQMessage( String inCcy1, String inCcy2, String inOrderType, String inNearDate, String inFarDate, long inTag )
 	{
 		messageType = TYPE_NEW_REQUEST;
@@ -33,9 +38,14 @@ public class RFQMessage
 		askPrice = null;
 		
 		tag = inTag;
+		
+		firstTakeTime = null;
+		updateTime = null;
+		
+		sequence = 0;
 	}
 	
-	public RFQMessage( int inMessageType, long inTag, Double inBidPrice, Double inAskPrice )
+	public RFQMessage( int inMessageType, long inTag, Double inBidPrice, Double inAskPrice, Long inFirstTakeTime, Long inUpdateTime, long inSequence )
 	{
 		messageType = inMessageType;
 		
@@ -50,6 +60,11 @@ public class RFQMessage
 		askPrice = inAskPrice;
 		
 		tag = inTag;
+		
+		firstTakeTime = inFirstTakeTime;
+		updateTime = inUpdateTime;
+		
+		sequence = inSequence;
 	}
 	
 }
