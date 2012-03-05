@@ -15,6 +15,7 @@ import org.juxtapose.fasid.util.IPublishedData;
  * A data sequencer is used where each data update must be handled in proper order without any misses.
  * To deal with race conditions incoming data is only redistributed to the subscriber if sequence number matches the expected sequence numner,
  * otherwise the update is put on a queue to wait until all previous updates have been processed. 
+ * This implementation could be extended to use the Disruptor ringbuffer.
  */
 public class DataSequencer implements IDataSubscriber
 {
