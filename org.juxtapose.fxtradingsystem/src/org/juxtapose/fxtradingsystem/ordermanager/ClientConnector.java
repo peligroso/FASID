@@ -26,12 +26,12 @@ public class ClientConnector
 	
 	long lastRFQTime = 0;
 	
-	long maxTimeBetweenRFQ = 500l * 1000000l;
+	long maxTimeBetweenRFQ = 5l * 1000000l;
 	
-	int maxRFQs = 1;
-	int warmup = -1;
+	int maxRFQs = 3000;
+	int warmup = 2000;
 	
-	int avgPriceUpdates = 200;
+	int avgPriceUpdates = 10;
 	
 	String[][] instruments = new String[][]{{"EUR", "SEK"}, {"EUR", "NOK"}, {"EUR", "USD"}, {"EUR", "DKK"}, {"EUR", "GBP"}, {"EUR", "TRY"}, {"EUR", "RUB"}, {"EUR", "AUD"}, {"EUR", "CHF"},{"EUR", "NZD"}, {"EUR", "CAD"}, {"EUR", "SGD"}, {"EUR", "JPY"}};
 	
@@ -209,7 +209,7 @@ public class ClientConnector
 	{
 		lastRFQTime = System.nanoTime();
 		String[] instrument = instruments[ rand.nextInt( instruments.length ) ];
-		RFQMessage rfq = new RFQMessage( instrument[0], instrument[1], FXDataConstants.STATE_INSTRUMENT_FWD, "1M", null, tag++ );
+		RFQMessage rfq = new RFQMessage( instrument[0], instrument[1], FXDataConstants.STATE_INSTRUMENT_FWD, null, null, tag++ );
 		manager.sendRFQ( rfq );
 	}
 	
