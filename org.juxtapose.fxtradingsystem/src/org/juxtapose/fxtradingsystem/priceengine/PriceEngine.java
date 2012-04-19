@@ -7,7 +7,6 @@ import org.juxtapose.fasid.producer.IDataProducer;
 import org.juxtapose.fasid.producer.ProducerUtil;
 import org.juxtapose.fasid.stm.osgi.DataProducerService;
 import org.juxtapose.fasid.util.IDataRequestSubscriber;
-import org.juxtapose.fasid.util.IDataSubscriber;
 import org.juxtapose.fasid.util.IPublishedData;
 import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.producerservices.DataInitializer;

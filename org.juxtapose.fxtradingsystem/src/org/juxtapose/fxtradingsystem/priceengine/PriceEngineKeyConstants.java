@@ -24,4 +24,5 @@ public class PriceEngineKeyConstants extends FXKeyConstants
 	public static final IDataKey CCY_RUB_KEY = ProducerUtil.createDataKey( FXProducerServiceConstants.PRICE_ENGINE, STATE_TYPE_CCY, STATE_RUB );
 	public static final IDataKey CCY_CAD_KEY = ProducerUtil.createDataKey( FXProducerServiceConstants.PRICE_ENGINE, STATE_TYPE_CCY, STATE_CAD );
 	public static final IDataKey CCY_MXN_KEY = ProducerUtil.createDataKey( FXProducerServiceConstants.PRICE_ENGINE, STATE_TYPE_CCY, STATE_MXN );
+	public static final IDataKey CCY_SGD_KEY = ProducerUtil.createDataKey( FXProducerServiceConstants.PRICE_ENGINE, STATE_TYPE_CCY, STATE_SGD );
 }

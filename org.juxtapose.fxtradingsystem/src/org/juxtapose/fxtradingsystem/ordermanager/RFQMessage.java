@@ -45,12 +45,12 @@ public class RFQMessage
 		sequence = 0;
 	}
 	
-	public RFQMessage( int inMessageType, long inTag, Double inBidPrice, Double inAskPrice, Long inFirstTakeTime, Long inUpdateTime, long inSequence )
+	public RFQMessage( int inMessageType, String inCcy1, String inCcy2, long inTag, Double inBidPrice, Double inAskPrice, Long inFirstTakeTime, Long inUpdateTime, long inSequence )
 	{
 		messageType = inMessageType;
 		
-		ccy1 = null;
-		ccy2 = null;
+		ccy1 = inCcy1;
+		ccy2 = inCcy2;
 		orderType = null;
 		
 		nearDate = null;

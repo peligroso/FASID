@@ -24,5 +24,6 @@ public class PriceEngineDataConstants extends FXDataConstants
 	public static final String STATE_RUB = "RUB";
 	public static final String STATE_CAD = "CAD";
 	public static final String STATE_MXN = "MXN";
+	public static final String STATE_SGD = "SGD";
 	
 }

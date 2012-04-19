@@ -6,4 +6,13 @@ public class DataTypeNull extends DataType<Object>{
 		super(inValue);
 	}
 
+	public final byte[] serialize( Integer inField )
+	{
+		byte[] bytes = new byte[5];
+		serializeInt( bytes, 0, inField );
+		bytes[5] = NULL;
+		
+		return bytes;
+		
+	}
 }

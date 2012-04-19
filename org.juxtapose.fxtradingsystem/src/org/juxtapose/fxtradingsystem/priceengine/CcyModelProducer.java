@@ -40,6 +40,16 @@ public class CcyModelProducer extends DataProducer
 				setStatus( Status.INITIALIZING );
 				addReference(PriceEngineDataConstants.FIELD_EUR, new DataTypeRef( PriceEngineKeyConstants.CCY_EUR_KEY ) );
 				addReference(PriceEngineDataConstants.FIELD_SEK, new DataTypeRef( PriceEngineKeyConstants.CCY_SEK_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_NOK, new DataTypeRef( PriceEngineKeyConstants.CCY_NOK_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_DKK, new DataTypeRef( PriceEngineKeyConstants.CCY_DKK_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_CHF, new DataTypeRef( PriceEngineKeyConstants.CCY_CHF_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_GBP, new DataTypeRef( PriceEngineKeyConstants.CCY_GBP_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_AUD, new DataTypeRef( PriceEngineKeyConstants.CCY_AUD_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_NZD, new DataTypeRef( PriceEngineKeyConstants.CCY_NZD_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_SGD, new DataTypeRef( PriceEngineKeyConstants.CCY_SGD_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_JPY, new DataTypeRef( PriceEngineKeyConstants.CCY_JPY_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_CAD, new DataTypeRef( PriceEngineKeyConstants.CCY_CAD_KEY ) );
+				addReference(PriceEngineDataConstants.FIELD_RUB, new DataTypeRef( PriceEngineKeyConstants.CCY_TRY_KEY ) );
 				//						addValue(FXDataConstants.CCY2, new DataTypeString(ccy2) );
 				//						addValue(FXDataConstants.FIELD_SEQUENCE, new DataTypeLong(seq) );
 				//						

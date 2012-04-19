@@ -65,9 +65,12 @@ public class MarketDataSource
 							QPMessage instDef = subscribedInstruments.get( sub );
 							double bid = rand.nextDouble();
 							double ask = rand.nextDouble();
-
+							
+							if( instDef == null )
+								continue;
+							
 							QPMessage quoteMessage = new QPMessage( QPMessage.QUOTE, instDef.ccy1, instDef.ccy2, instDef.period, bid, ask );
-
+							
 							sub.marketDataUpdated( quoteMessage );
 
 							int sleepTime = rand.nextInt( 10 );

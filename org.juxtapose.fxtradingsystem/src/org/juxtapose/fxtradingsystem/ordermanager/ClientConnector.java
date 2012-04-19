@@ -24,14 +24,16 @@ public class ClientConnector
 	
 	long tag = 0;
 	
-	long maxTimeBetweenRFQ = 600l * 1000000l;
-	
 	long lastRFQTime = 0;
 	
-	int maxRFQs = 200;
-	int warmup = 180;
+	long maxTimeBetweenRFQ = 500l * 1000000l;
+	
+	int maxRFQs = 1;
+	int warmup = -1;
 	
 	int avgPriceUpdates = 200;
+	
+	String[][] instruments = new String[][]{{"EUR", "SEK"}, {"EUR", "NOK"}, {"EUR", "USD"}, {"EUR", "DKK"}, {"EUR", "GBP"}, {"EUR", "TRY"}, {"EUR", "RUB"}, {"EUR", "AUD"}, {"EUR", "CHF"},{"EUR", "NZD"}, {"EUR", "CAD"}, {"EUR", "SGD"}, {"EUR", "JPY"}};
 	
 	Map<Long, Long> updateToCount = new TreeMap<Long, Long>();
 	Map<Long, Long> firstTakeToCount = new TreeMap<Long, Long>();
@@ -49,6 +51,7 @@ public class ClientConnector
 	private void initStatsContainer( Map<Long, Long> inMap )
 	{
 		inMap.put( 10000l, 0l );
+		inMap.put( 15000l, 0l );
 		inMap.put( 20000l, 0l );
 		inMap.put( 30000l, 0l );
 		inMap.put( 40000l, 0l );
@@ -121,13 +124,13 @@ public class ClientConnector
 						else
 						{
 							addSample( inCommingMess.updateTime, updateToCount );
-//							System.out.println( "Price is "+inCommingMess.bidPrice+" / "+inCommingMess.askPrice+" sequence "+inCommingMess.sequence+" updatetime: "+inCommingMess.updateTime+"   id: "+inCommingMess.tag);
+//							System.out.println( "Price "+inCommingMess.ccy1+inCommingMess.ccy2+" is "+inCommingMess.bidPrice+" / "+inCommingMess.askPrice+" sequence "+inCommingMess.sequence+" updatetime: "+inCommingMess.updateTime+"   id: "+inCommingMess.tag);
 						}
 					}
 
 					if( inCommingMess.sequence == avgPriceUpdates )//rand.nextInt( avgPriceUpdates ) == 1 )
 					{
-						RFQMessage dr = new RFQMessage( RFQMessage.TYPE_DR, inCommingMess.tag, inCommingMess.bidPrice, inCommingMess.askPrice, null, null, 0 );
+						RFQMessage dr = new RFQMessage( RFQMessage.TYPE_DR, inCommingMess.ccy1, inCommingMess.ccy2, inCommingMess.tag, inCommingMess.bidPrice, inCommingMess.askPrice, null, null, 0 );
 						manager.sendDR( dr );
 						
 						if( inCommingMess.tag == maxRFQs -1 )
@@ -204,10 +207,9 @@ public class ClientConnector
 	
 	private void sendRFQ( )
 	{
-//		if( tag > 0 )
-//			return;
 		lastRFQTime = System.nanoTime();
-		RFQMessage rfq = new RFQMessage( "EUR", "SEK", FXDataConstants.STATE_INSTRUMENT_SPOT, "SP", "SP", tag++ );
+		String[] instrument = instruments[ rand.nextInt( instruments.length ) ];
+		RFQMessage rfq = new RFQMessage( instrument[0], instrument[1], FXDataConstants.STATE_INSTRUMENT_FWD, "1M", null, tag++ );
 		manager.sendRFQ( rfq );
 	}
 	

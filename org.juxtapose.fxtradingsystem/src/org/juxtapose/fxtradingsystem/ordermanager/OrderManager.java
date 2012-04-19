@@ -20,6 +20,7 @@ import org.juxtapose.fasid.util.data.DataType;
 import org.juxtapose.fasid.util.data.DataTypeBigDecimal;
 import org.juxtapose.fasid.util.data.DataTypeBoolean;
 import org.juxtapose.fasid.util.data.DataTypeRef;
+import org.juxtapose.fasid.util.data.DataTypeString;
 import org.juxtapose.fasid.util.subscriber.DataSequencer;
 import org.juxtapose.fasid.util.subscriber.ISequencedDataSubscriber;
 import org.juxtapose.fxtradingsystem.FXDataConstants;
@@ -114,6 +115,9 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 			final DataTypeBigDecimal ask = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_ASK );
 			final DataTypeBigDecimal spread = (DataTypeBigDecimal)priceRef.getReferenceData().getValue( FXDataConstants.FIELD_SPREAD );
 			
+			final DataTypeString ccy1 = (DataTypeString)inData.getValue( FXDataConstants.FIELD_CCY1 );
+			final DataTypeString ccy2 = (DataTypeString)inData.getValue( FXDataConstants.FIELD_CCY2 );
+			
 			Long tou = (Long)priceRef.getReferenceData().getValue( DataConstants.FIELD_TIMESTAMP ).get();
 			
 			final long sequence = inData.getSequenceID();
@@ -160,7 +164,7 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 //				}, IExecutor.LOW );
 			}
 			
-			RFQMessage message = new RFQMessage( RFQMessage.TYPE_PRICING, id, bid.get().doubleValue(), ask.get().doubleValue(), firstTakeTime, updateProcessingTime, sequence );
+			RFQMessage message = new RFQMessage( RFQMessage.TYPE_PRICING, ccy1.get(), ccy2.get(), id,  bid.get().doubleValue(), ask.get().doubleValue(), firstTakeTime, updateProcessingTime, sequence );
 			
 //			long start = System.nanoTime();
 			
@@ -192,11 +196,39 @@ public class OrderManager extends DataProducerService implements IOrderManager, 
 				
 				String id = Long.toString( rfqID );
 				
-				IDataKey key = ProducerUtil.createDataKey( getServiceId(), FXDataConstants.STATE_TYPE_RFQ, 
+				IDataKey key;
+				RFQProducer producer;
+				
+				if( inMessage.orderType.equals( FXDataConstants.STATE_INSTRUMENT_SPOT ))
+				{
+					key = ProducerUtil.createDataKey( getServiceId(), FXDataConstants.STATE_TYPE_RFQ, 
 						new Integer[]{FXDataConstants.FIELD_ID, FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2}, 
 						new String[]{id, inMessage.ccy1, inMessage.ccy2 } );
-				
-				RFQProducer producer = new RFQProducer( key, stm );
+					
+					producer = new RFQProducer( key, stm, inMessage.ccy1, inMessage.ccy2, null, null );
+				}
+				else if( inMessage.orderType.equals( FXDataConstants.STATE_INSTRUMENT_FWD ))
+				{
+					key = ProducerUtil.createDataKey( getServiceId(), FXDataConstants.STATE_TYPE_RFQ, 
+							new Integer[]{FXDataConstants.FIELD_ID, FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2, FXDataConstants.FIELD_NEAR_SWAP}, 
+							new String[]{id, inMessage.ccy1, inMessage.ccy2, inMessage.nearDate } );
+					
+					producer = new RFQProducer( key, stm, inMessage.ccy1, inMessage.ccy2, inMessage.nearDate, null );
+				}
+				else if( inMessage.orderType.equals( FXDataConstants.STATE_INSTRUMENT_SWAP ))
+				{
+					key = ProducerUtil.createDataKey( getServiceId(), FXDataConstants.STATE_TYPE_RFQ, 
+							new Integer[]{FXDataConstants.FIELD_ID, FXDataConstants.FIELD_CCY1, FXDataConstants.FIELD_CCY2, FXDataConstants.FIELD_NEAR_SWAP, FXDataConstants.FIELD_FAR_SWAP}, 
+							new String[]{id, inMessage.ccy1, inMessage.ccy2, inMessage.nearDate, inMessage.farDate } );
+					
+					producer = new RFQProducer( key, stm, inMessage.ccy1, inMessage.ccy2, inMessage.nearDate, inMessage.farDate );
+				}
+				else
+				{
+					stm.logError( "Invalid RFQ order type "+inMessage.orderType );
+					return;
+				}
+			
 				DataSequencer seq = new DataSequencer( OrderManager.this, stm, key );
 				
 				RFQContext ctx = new RFQContext( seq, producer, System.nanoTime() );
